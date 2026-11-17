@@ -61,7 +61,7 @@ function Gallery({ data, media }: { data: Block['data']; media: Media }) {
     .join('\n')
     .trim()
   return (
-    <section style={{ paddingTop: 24, paddingBottom: 72 }}>
+    <section style={{ paddingTop: 16, paddingBottom: 'var(--sp-section)' }}>
       <div className="tf-gallery" role="region" aria-label={`Slides, ${ids.length} images. Scroll sideways for more.`} tabIndex={0}>
         {ids.map((id, i) => {
           const m = media[id]!
@@ -157,10 +157,10 @@ function Verdict({ data, media }: { data: Block['data']; media: Media }) {
   const picture = data.mediaId ? media[data.mediaId as string] : undefined
   const price = typeof data.priceInr === 'number' ? ` · ${rupees(data.priceInr)}` : ''
   return (
-    <section id="verdict" style={{ background: 'var(--panel)', borderTop: '1px solid var(--stroke)', borderBottom: '1px solid var(--stroke)', padding: '104px 0' }}>
+    <section id="verdict" style={{ background: 'var(--panel)', borderTop: '1px solid var(--stroke)', borderBottom: '1px solid var(--stroke)', padding: 'var(--sp-section) 0' }}>
       <div className="tf-wrap" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         <div className="tf-eyebrow">{String(data.eyebrow)}</div>
-        <h2 className="tf-display tf-reveal" style={{ fontSize: 'clamp(52px, 6.6vw, 104px)' }}>
+        <h2 className="tf-display tf-reveal" style={{ fontSize: 'var(--t-h2)' }}>
           {String(data.pick)}
         </h2>
         <div className="tf-split" style={{ marginTop: 40 }}>
@@ -170,24 +170,24 @@ function Verdict({ data, media }: { data: Block['data']; media: Media }) {
             </div>
           ) : null}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-            <div style={{ fontSize: 'clamp(30px, 3.4vw, 44px)', fontWeight: 700, color: 'var(--ink-cream)' }}>
+            <div style={{ fontSize: 'clamp(22px, 2.4vw, 32px)', fontWeight: 700, color: 'var(--ink-cream)' }}>
               {String(data.pick)}
               {price}
             </div>
             {data.summary ? <p className="tf-body">{String(data.summary)}</p> : null}
             <ul style={{ margin: '8px 0 0', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 14 }}>
               {reasons.map((r, i) => (
-                <li key={i} style={{ fontSize: 20, lineHeight: 1.4, color: 'var(--ink-cream)' }}>
+                <li key={i} style={{ fontSize: 'var(--t-lead)', lineHeight: 1.45, color: 'var(--ink-cream)' }}>
                   ✓&nbsp;&nbsp;{r}
                 </li>
               ))}
-              <li style={{ fontSize: 20, lineHeight: 1.4, color: 'var(--warn)' }}>✕&nbsp;&nbsp;Drawback: {String(data.drawback)}</li>
+              <li style={{ fontSize: 'var(--t-lead)', lineHeight: 1.45, color: 'var(--warn)' }}>✕&nbsp;&nbsp;Drawback: {String(data.drawback)}</li>
             </ul>
             {runnerUp ? (
               <div style={{ marginTop: 20, background: 'var(--bg)', border: '1px solid var(--stroke)', padding: 24, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div className="tf-label">Runner-up</div>
-                <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--ink-cream)' }}>{runnerUp.name}</div>
-                {runnerUp.line ? <p className="tf-body" style={{ fontSize: 18 }}>{runnerUp.line}</p> : null}
+                <div style={{ fontSize: 'clamp(18px, 1.8vw, 22px)', fontWeight: 700, color: 'var(--ink-cream)' }}>{runnerUp.name}</div>
+                {runnerUp.line ? <p className="tf-body">{runnerUp.line}</p> : null}
               </div>
             ) : null}
           </div>
@@ -212,7 +212,7 @@ function Inline({ block, media }: { block: Block; media: Media }): ReactNode {
   switch (block.type) {
     case 'heading':
       return d.level === 3 ? (
-        <h3 className="tf-reveal" style={{ margin: 0, fontSize: 28, fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-cream)' }}>
+        <h3 className="tf-reveal" style={{ margin: 0, fontSize: 'var(--t-h3)', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-cream)' }}>
           {String(d.text)}
         </h3>
       ) : (

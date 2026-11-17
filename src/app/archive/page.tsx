@@ -48,7 +48,7 @@ export default async function ArchivePage({ searchParams }: Props) {
       <Ornaments />
       <SiteHeader />
       <main>
-        <section className="tf-wrap" style={{ paddingTop: 80, paddingBottom: 48, display: 'flex', flexDirection: 'column', gap: 26 }}>
+        <section className="tf-wrap" style={{ paddingTop: 'var(--sp-top)', paddingBottom: 40, display: 'flex', flexDirection: 'column', gap: 26 }}>
           <div className="tf-eyebrow">The archive</div>
           <h1 className="tf-display tf-h1">Every verdict.</h1>
           <div className="tf-rule-line tf-rule-anim" />
@@ -56,12 +56,12 @@ export default async function ArchivePage({ searchParams }: Props) {
             <label htmlFor="q" className="tf-label" style={{ position: 'absolute', left: -9999 }}>
               Search
             </label>
-            <input id="q" name="q" type="search" defaultValue={params.q} placeholder="Search a watch, brand or price…" className="tf-field" style={{ flex: '999 1 300px', minHeight: 56, fontSize: 18 }} />
+            <input id="q" name="q" type="search" defaultValue={params.q} placeholder="Search a watch, brand or price…" className="tf-field" style={{ flex: '999 1 260px', minHeight: 50, fontSize: 'var(--t-body)' }} />
             {params.category ? <input type="hidden" name="category" value={params.category} /> : null}
             {params.tags.map((t) => (
               <input key={t} type="hidden" name="tag" value={t} />
             ))}
-            <button type="submit" className="tf-cta" style={{ minHeight: 56 }}>
+            <button type="submit" className="tf-cta" style={{ minHeight: 50 }}>
               Search
             </button>
           </form>
@@ -85,7 +85,7 @@ export default async function ArchivePage({ searchParams }: Props) {
                 {tags.map((t) => {
                   const on = params.tags.includes(t.slug)
                   return (
-                    <Link key={t.slug} className="tf-tag" href={hrefWith(params, { toggleTag: t.slug })} aria-pressed={on} style={{ minHeight: 36, fontSize: 14, ...(on ? { borderColor: 'var(--gold)', color: 'var(--ink-cream)', background: 'var(--panel-hi)' } : {}) }}>
+                    <Link key={t.slug} className="tf-tag" href={hrefWith(params, { toggleTag: t.slug })} aria-pressed={on} style={{ minHeight: 34, fontSize: 13, ...(on ? { borderColor: 'var(--gold)', color: 'var(--ink-cream)', background: 'var(--panel-hi)' } : {}) }}>
                       {on ? '✓ ' : ''}
                       {t.name}
                     </Link>
@@ -110,7 +110,7 @@ export default async function ArchivePage({ searchParams }: Props) {
                   <span style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '18px 20px 22px' }}>
                     <span className="tf-label">{post.categoryName}</span>
                     <span className="tf-clamp-3" style={{ fontFamily: 'var(--display)', fontSize: titleSize(post.title, 'tile'), lineHeight: 1.04, textTransform: 'uppercase' }}>{post.title}</span>
-                    {post.deck ? <span style={{ fontSize: 16, lineHeight: 1.45, color: 'var(--grey-1)' }}>{post.deck}</span> : null}
+                    {post.deck ? <span style={{ fontSize: 'var(--t-small)', lineHeight: 1.45, color: 'var(--grey-1)' }}>{post.deck}</span> : null}
                   </span>
                 </Link>
               ))}

@@ -25,7 +25,7 @@ export default async function LoginPage({ searchParams }: Props) {
         </Link>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div className="tf-eyebrow">Admin</div>
-          <h1 className="tf-display" style={{ fontSize: 'clamp(44px, 6vw, 68px)' }}>
+          <h1 className="tf-display" style={{ fontSize: 'clamp(36px, 4vw, 52px)' }}>
             Sign in
           </h1>
           <p className="tf-note">Enter your email and we&apos;ll send you a link. Only accounts given access by an admin can open the admin area.</p>

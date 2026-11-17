@@ -113,13 +113,13 @@ export function IssuesCarousel({ issues }: { issues: Issue[] }) {
       <div className="tf-wrap tf-reveal" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: '24px 48px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div className="tf-eyebrow">The issues</div>
-          <h2 className="tf-display" style={{ fontSize: 'clamp(40px, 4.6vw, 68px)' }}>
+          <h2 className="tf-display" style={{ fontSize: 'var(--t-h2)' }}>
             Pick a comparison.
           </h2>
         </div>
         {count > 1 ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div aria-live="polite" style={{ fontSize: 17, fontWeight: 700, color: 'var(--grey-2)', minWidth: 72, fontVariantNumeric: 'tabular-nums' }}>
+            <div aria-live="polite" style={{ fontSize: 'var(--t-small)', fontWeight: 700, color: 'var(--grey-2)', minWidth: 64, fontVariantNumeric: 'tabular-nums' }}>
               {pad(shown + 1)} / {pad(count)}
             </div>
             <button className="tf-btn" type="button" aria-label="Previous issue" onClick={() => go(-1)}>
@@ -224,10 +224,10 @@ export function IssuesCarousel({ issues }: { issues: Issue[] }) {
       </div>
 
       <div key={current.slug} className="tf-flow-caption">
-        <div className="tf-display tf-clamp-3" style={{ fontSize: 'clamp(24px, 2.4vw, 34px)', lineHeight: 1.05 }}>
+        <div className="tf-display tf-clamp-3" style={{ fontSize: 'clamp(20px, 2vw, 28px)', lineHeight: 1.06 }}>
           {current.title}
         </div>
-        {current.deck ? <p style={{ margin: 0, fontSize: 19, lineHeight: 1.4, color: 'var(--grey-1)' }}>{current.deck}</p> : null}
+        {current.deck ? <p style={{ margin: 0, fontSize: 'var(--t-lead)', lineHeight: 1.45, color: 'var(--grey-1)' }}>{current.deck}</p> : null}
         <Link className="tf-nav" href={`/posts/${current.slug}`} style={{ color: 'var(--gold-light)' }}>
           Read it →
         </Link>

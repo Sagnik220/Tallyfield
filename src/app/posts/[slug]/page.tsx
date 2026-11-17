@@ -62,7 +62,7 @@ export default async function PostPage({ params }: Props) {
 
       <main>
         <article>
-          <section className="tf-wrap" style={{ paddingTop: 80, paddingBottom: 56, display: 'flex', flexDirection: 'column', gap: 26 }}>
+          <section className="tf-wrap" style={{ paddingTop: 'var(--sp-top)', paddingBottom: 40, display: 'flex', flexDirection: 'column', gap: 26 }}>
             <div className="tf-eyebrow">
               {category ? (
                 <Link href={`/archive?category=${category.slug}`} style={{ color: 'inherit', textDecoration: 'none' }}>
@@ -98,21 +98,21 @@ export default async function PostPage({ params }: Props) {
           </section>
 
           {showCover && cover ? (
-            <figure style={{ margin: 0, position: 'relative', width: '100%', height: 'clamp(320px, 46vw, 660px)' }}>
+            <figure style={{ margin: 0, position: 'relative', width: '100%', height: 'clamp(240px, 42vw, 600px)' }}>
               <Image src={mediaUrl(cover.storage_path)} alt={cover.alt} fill priority sizes="100vw" style={{ objectFit: 'cover' }} />
             </figure>
           ) : null}
 
           {verdict ? (
-            <section className="tf-wrap" style={{ paddingTop: 72, paddingBottom: 72 }}>
+            <section className="tf-wrap" style={{ paddingTop: 40, paddingBottom: 40 }}>
               <a
                 className="tf-cta tf-reveal"
                 href="#verdict"
-                style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '16px 40px', padding: '28px 32px', background: 'var(--panel-hi)', border: '2px solid var(--gold)', color: 'var(--ink-cream)', textTransform: 'none', letterSpacing: 0 }}
+                style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '16px 40px', padding: '22px clamp(18px, 3vw, 28px)', background: 'var(--panel-hi)', border: '2px solid var(--gold)', color: 'var(--ink-cream)', textTransform: 'none', letterSpacing: 0 }}
               >
                 <span style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <span className="tf-label">{verdict.eyebrow}</span>
-                  <span style={{ fontSize: 'clamp(26px, 3vw, 40px)', fontWeight: 700 }}>
+                  <span style={{ fontSize: 'clamp(20px, 2.2vw, 30px)', fontWeight: 700 }}>
                     {verdict.pick}
                     {verdict.priceInr ? ` · ${formatRupees(verdict.priceInr)}` : ''}
                   </span>

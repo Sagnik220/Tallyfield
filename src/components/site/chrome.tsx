@@ -55,10 +55,10 @@ export function SiteHeader({ latestHref }: { latestHref?: string | null }) {
   return (
     <header
       className="tf-wrap"
-      style={{ paddingTop: 44, display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '20px 40px' }}
+      style={{ paddingTop: 'clamp(18px, 3vw, 36px)', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '12px 40px' }}
     >
       <Link href="/" aria-label="Tallyfield home" style={{ display: 'flex', alignItems: 'center', minHeight: 44, textDecoration: 'none' }}>
-        <Wordmark />
+        <Wordmark size={26} />
       </Link>
       <nav aria-label="Sections" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 36px' }}>
         <Link className="tf-nav" href="/">
@@ -85,7 +85,7 @@ export function SiteHeader({ latestHref }: { latestHref?: string | null }) {
 
 export function SiteFooter({ prompt = 'Which one would you pick? Tell us on Instagram.' }: { prompt?: string }) {
   return (
-    <footer className="tf-wrap" style={{ paddingTop: 104, paddingBottom: 72, display: 'flex', flexDirection: 'column', gap: 56 }}>
+    <footer className="tf-wrap" style={{ paddingTop: 'var(--sp-section)', paddingBottom: 48, display: 'flex', flexDirection: 'column', gap: 40 }}>
       <a
         className="tf-cta tf-reveal"
         href={site.instagram}
@@ -94,9 +94,9 @@ export function SiteFooter({ prompt = 'Which one would you pick? Tell us on Inst
           flexWrap: 'wrap',
           justifyContent: 'space-between',
           gap: '12px 32px',
-          minHeight: 104,
-          padding: '20px 32px',
-          fontSize: 'clamp(20px, 2.2vw, 30px)',
+          minHeight: 'clamp(72px, 8vw, 96px)',
+          padding: '18px clamp(20px, 3vw, 32px)',
+          fontSize: 'clamp(17px, 1.8vw, 24px)',
           letterSpacing: 0,
           textTransform: 'none',
         }}
@@ -106,10 +106,10 @@ export function SiteFooter({ prompt = 'Which one would you pick? Tell us on Inst
       </a>
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: '32px 48px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-          <Mark size={72} />
+          <Mark size={56} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <Wordmark size={40} />
-            <div style={{ fontSize: 19, color: 'var(--grey-1)' }}>Watches · Reviews · Buying guides</div>
+            <Wordmark size={30} />
+            <div style={{ fontSize: 'var(--t-small)', color: 'var(--grey-1)' }}>Watches · Reviews · Buying guides</div>
           </div>
         </div>
         <nav aria-label="Footer" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 32px' }}>
@@ -129,7 +129,7 @@ export function SiteFooter({ prompt = 'Which one would you pick? Tell us on Inst
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div className="tf-rule-line" style={{ maxWidth: 'none' }} />
-        <div style={{ fontSize: 16, color: 'var(--grey-3)' }}>{site.tagline}</div>
+        <div style={{ fontSize: 'var(--t-small)', color: 'var(--grey-3)' }}>{site.tagline}</div>
       </div>
     </footer>
   )

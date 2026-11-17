@@ -39,7 +39,7 @@ export function HeroCard({ src, alt, badge, caption, maxTilt = 10 }: Props) {
             {src ? (
               <Image src={src} alt={alt} fill priority sizes="(max-width: 900px) 100vw, 560px" style={{ objectFit: 'cover' }} />
             ) : (
-              <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontFamily: 'var(--display)', fontSize: 64, color: 'var(--stroke)', textTransform: 'uppercase' }}>
+              <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontFamily: 'var(--display)', fontSize: 'clamp(40px, 5vw, 64px)', color: 'var(--stroke)', textTransform: 'uppercase' }}>
                 Tallyfield
               </div>
             )}

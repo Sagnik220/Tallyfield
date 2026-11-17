@@ -17,7 +17,7 @@ export default function AboutPage() {
       <Ornaments />
       <SiteHeader />
       <main>
-        <section className="tf-wrap tf-split" style={{ paddingTop: 80, paddingBottom: 96 }}>
+        <section className="tf-wrap tf-split" style={{ paddingTop: 'var(--sp-top)', paddingBottom: 'var(--sp-section)' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 26 }}>
             <div className="tf-eyebrow">About Tallyfield</div>
             <h1 className="tf-display tf-h1">
@@ -31,7 +31,7 @@ export default function AboutPage() {
             </p>
           </div>
           <div className="tf-stage tf-reveal" style={{ display: 'flex', justifyContent: 'center' }}>
-            <Mark size={320} className="tf-tilt tf-float" />
+            <Mark size={260} className="tf-tilt tf-float" />
           </div>
         </section>
 
@@ -41,9 +41,9 @@ export default function AboutPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: 24 }}>
               {STEPS.map((s, i) => (
                 <div key={s.title} className="tf-reveal" style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '28px 24px', background: 'var(--panel)', border: '1px solid var(--stroke)' }}>
-                  <div style={{ fontFamily: 'var(--display)', fontSize: 56, lineHeight: 0.9, color: 'var(--gold)' }}>{String(i + 1).padStart(2, '0')}</div>
-                  <h3 style={{ margin: 0, fontSize: 22, fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-cream)' }}>{s.title}</h3>
-                  <p className="tf-body" style={{ fontSize: 18, lineHeight: 1.45 }}>
+                  <div style={{ fontFamily: 'var(--display)', fontSize: 'clamp(36px, 3.6vw, 48px)', lineHeight: 0.9, color: 'var(--gold)' }}>{String(i + 1).padStart(2, '0')}</div>
+                  <h3 style={{ margin: 0, fontSize: 'var(--t-h3)', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-cream)' }}>{s.title}</h3>
+                  <p className="tf-body">
                     {s.text}
                   </p>
                 </div>
@@ -52,7 +52,7 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section style={{ background: 'var(--panel)', borderTop: '1px solid var(--stroke)', borderBottom: '1px solid var(--stroke)', padding: '96px 0' }}>
+        <section style={{ background: 'var(--panel)', borderTop: '1px solid var(--stroke)', borderBottom: '1px solid var(--stroke)', padding: 'var(--sp-section) 0' }}>
           <div className="tf-wrap" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <div className="tf-eyebrow">Get in touch</div>
             <p className="tf-body">

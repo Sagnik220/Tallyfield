@@ -6,29 +6,29 @@
 type Tier = 'hero' | 'article' | 'card' | 'row' | 'tile'
 
 const STEPS: Record<Tier, [number, string][]> = {
-  // [max characters, font-size]
+  // [max characters, font-size]. Minimums are phone sizes, maximums are large-monitor sizes.
   hero: [
-    [28, 'clamp(52px, 6.4vw, 96px)'],
-    [50, 'clamp(42px, 4.6vw, 68px)'],
-    [Infinity, 'clamp(32px, 3.2vw, 48px)'],
+    [28, 'clamp(36px, 5.4vw, 80px)'],
+    [50, 'clamp(30px, 3.8vw, 56px)'],
+    [Infinity, 'clamp(24px, 2.7vw, 40px)'],
   ],
   article: [
-    [28, 'clamp(52px, 6.6vw, 100px)'],
-    [55, 'clamp(42px, 4.8vw, 72px)'],
-    [Infinity, 'clamp(32px, 3.4vw, 52px)'],
+    [28, 'clamp(38px, 5.6vw, 84px)'],
+    [55, 'clamp(30px, 4vw, 60px)'],
+    [Infinity, 'clamp(25px, 2.9vw, 44px)'],
   ],
   card: [
-    [28, '38px'],
-    [50, '30px'],
-    [Infinity, '24px'],
+    [28, 'clamp(26px, 2.6vw, 34px)'],
+    [50, 'clamp(22px, 2.1vw, 28px)'],
+    [Infinity, 'clamp(18px, 1.7vw, 22px)'],
   ],
   row: [
-    [45, 'clamp(26px, 2.8vw, 40px)'],
-    [Infinity, 'clamp(20px, 2vw, 28px)'],
+    [45, 'clamp(20px, 2.4vw, 34px)'],
+    [Infinity, 'clamp(17px, 1.8vw, 26px)'],
   ],
   tile: [
-    [36, '28px'],
-    [Infinity, '22px'],
+    [36, 'clamp(20px, 2vw, 26px)'],
+    [Infinity, 'clamp(17px, 1.6vw, 21px)'],
   ],
 }
 

@@ -64,7 +64,7 @@ export default async function HomePage() {
                   Follow on Instagram <span aria-hidden="true">→</span>
                 </a>
               )}
-              <Link className="tf-nav" href="/archive" style={{ fontSize: 15 }}>
+              <Link className="tf-nav" href="/archive" style={{ fontSize: 'var(--t-small)' }}>
                 All comparisons
               </Link>
             </div>
@@ -77,16 +77,16 @@ export default async function HomePage() {
         </section>
 
         {issues.length > 1 ? (
-          <section id="issues" style={{ borderTop: '1px solid var(--rule-dark)', padding: '104px 0 112px' }}>
+          <section id="issues" style={{ borderTop: '1px solid var(--rule-dark)', padding: 'var(--sp-section) 0' }}>
             <IssuesCarousel issues={issues} />
           </section>
         ) : null}
 
-        <section id="latest" style={{ borderTop: '1px solid var(--rule-dark)', padding: '104px 0 96px' }}>
+        <section id="latest" style={{ borderTop: '1px solid var(--rule-dark)', padding: 'var(--sp-section) 0' }}>
           <div className="tf-wrap">
-            <div className="tf-reveal" style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 48 }}>
+            <div className="tf-reveal" style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 36 }}>
               <div className="tf-eyebrow">Latest</div>
-              <h2 className="tf-display" style={{ fontSize: 'clamp(44px, 5.4vw, 80px)' }}>
+              <h2 className="tf-display" style={{ fontSize: 'var(--t-h2)' }}>
                 Worth it, or not.
               </h2>
             </div>
@@ -94,7 +94,7 @@ export default async function HomePage() {
               {latest.length > 0 ? (
                 latest.map((post, i) => (
                   <Link key={post.id} className="tf-row tf-reveal" href={`/posts/${post.slug}`}>
-                    <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--grey-2)' }}>{pad(i + 1)}</span>
+                    <span style={{ fontSize: 'var(--t-small)', fontWeight: 700, color: 'var(--grey-2)' }}>{pad(i + 1)}</span>
                     <span style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                       <span className="tf-label">{post.categoryName}</span>
                       <span style={{ fontFamily: 'var(--display)', fontSize: titleSize(post.title, 'row'), lineHeight: 1.04, textTransform: 'uppercase' }}>{post.title}</span>
@@ -106,10 +106,10 @@ export default async function HomePage() {
                 ))
               ) : (
                 <a className="tf-row" href={site.instagram}>
-                  <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--grey-2)' }}>01</span>
+                  <span style={{ fontSize: 'var(--t-small)', fontWeight: 700, color: 'var(--grey-2)' }}>01</span>
                   <span style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     <span className="tf-label">First issues coming soon</span>
-                    <span style={{ fontFamily: 'var(--display)', fontSize: 'clamp(28px, 3.2vw, 44px)', lineHeight: 1.02, textTransform: 'uppercase' }}>
+                    <span style={{ fontFamily: 'var(--display)', fontSize: 'clamp(20px, 2.4vw, 34px)', lineHeight: 1.04, textTransform: 'uppercase' }}>
                       Until then, every verdict is on Instagram.
                     </span>
                   </span>
@@ -122,11 +122,11 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section id="method" style={{ background: 'var(--panel)', borderTop: '1px solid var(--stroke)', borderBottom: '1px solid var(--stroke)', padding: '104px 0' }}>
-          <div className="tf-wrap" style={{ display: 'flex', flexDirection: 'column', gap: 64 }}>
+        <section id="method" style={{ background: 'var(--panel)', borderTop: '1px solid var(--stroke)', borderBottom: '1px solid var(--stroke)', padding: 'var(--sp-section) 0' }}>
+          <div className="tf-wrap" style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(32px, 5vw, 56px)' }}>
             <div className="tf-reveal" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div className="tf-eyebrow">How we judge</div>
-              <h2 className="tf-display" style={{ fontSize: 'clamp(44px, 5.4vw, 80px)' }}>
+              <h2 className="tf-display" style={{ fontSize: 'var(--t-h2)' }}>
                 Thoughtful comparisons.
                 <br />
                 Clearer choices.
