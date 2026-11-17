@@ -97,12 +97,14 @@ function cleanBlock(n: Json): Json[] {
       return [{ type }]
     case 'table': {
       // Rows of cells; each cell keeps only its text as paragraphs (no nested tables, pictures or lists).
+      // Malformed pasted tables (rows without cells, stray paragraphs) keep their words: anything that is not
+      // a row becomes a one-cell row, anything in a row that is not a cell becomes a cell.
       const rows = (Array.isArray(n.content) ? (n.content as Json[]) : [])
-        .filter((r) => r.type === 'tableRow')
+        .map((r) => (r.type === 'tableRow' ? r : { type: 'tableRow', content: [r] }))
         .slice(0, 300)
         .map((r) => {
           const cells = (Array.isArray(r.content) ? (r.content as Json[]) : [])
-            .filter((c) => c.type === 'tableHeader' || c.type === 'tableCell')
+            .map((c) => (c.type === 'tableHeader' || c.type === 'tableCell' ? c : { type: 'tableCell', content: [c] }))
             .slice(0, 20)
             .map((c) => {
               const a = (c.attrs ?? {}) as Json

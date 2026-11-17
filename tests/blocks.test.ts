@@ -134,3 +134,17 @@ describe('gallery caption limit', () => {
     expect(bodySchema.safeParse(body('a'.repeat(50_001))).success).toBe(false)
   })
 })
+
+describe('rich text tables', () => {
+  it('keeps well-formed tables and repairs broken ones without losing words', async () => {
+    const { sanitizeRichDoc, richDoc } = await import('@/blocks')
+    const good = { type: 'doc', content: [{ type: 'table', content: [{ type: 'tableRow', content: [{ type: 'tableHeader', attrs: { colspan: 1, rowspan: 1, colwidth: [200], style: 'color:red' }, content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Spec' }] }] }, { type: 'tableCell', content: [{ type: 'bulletList', content: [{ type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Quartz' }] }] }] }] }] }] }] }
+    const clean = sanitizeRichDoc(good)
+    expect(richDoc.safeParse(clean).success).toBe(true)
+    expect(JSON.stringify(clean)).not.toContain('style')
+    expect(JSON.stringify(clean)).toContain('Quartz')
+    const nested = sanitizeRichDoc({ type: 'doc', content: [{ type: 'table', content: [{ type: 'tableRow', content: [{ type: 'tableCell', content: [{ type: 'table', content: [] }, { type: 'image', attrs: {} }, { type: 'paragraph', content: [{ type: 'text', text: 'ok' }] }] }] }] }] })
+    expect(richDoc.safeParse(nested).success).toBe(true)
+    expect(JSON.stringify(nested)).toContain('ok')
+  })
+})
