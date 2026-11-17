@@ -1,0 +1,25 @@
+:root {
+  --bg: #050505;
+  --ink-cream: #f6e7d4;
+  --gold: #b0925e;
+  --gold-light: #c8a86b;
+  --grey-1: #cfc3b0;
+  --grey-2: #a39a8a;
+  --grey-3: #7d766a;
+  --panel: #10221e;
+  --panel-hi: #142b25;
+  --rule-dark: #2c3d38;
+  --stroke: #33463f;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--grey-1);
+  font-family: Inter, Arimo, 'Helvetica Neue', Arial, sans-serif;
+}
+
+a {
+  color: var(--gold-light);
+}

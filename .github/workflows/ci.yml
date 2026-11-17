@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Least privilege: jobs can read the code and nothing else.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  app:
+    name: Lint, types, tests, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - name: Build
+        run: npm run build
+        env:
+          # Placeholder values: the build must not need real secrets.
+          NEXT_PUBLIC_SITE_URL: https://example.com
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_placeholder_000000
+
+  database:
+    name: Migrations and access-rule tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Apply migrations and run SQL tests on a throwaway database
+        run: bash scripts/db-test.sh
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres

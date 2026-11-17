@@ -1,0 +1,64 @@
+name: Deploy database
+
+# The website itself is deployed by Vercel's Git integration (a preview for every pull request,
+# production on merge to main). This workflow applies database migrations to production.
+
+on:
+  push:
+    branches: [main]
+    paths: ['supabase/migrations/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-database
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Re-run database tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - run: bash scripts/db-test.sh
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+
+  migrate:
+    name: Apply migrations to production
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Create this environment in GitHub and add a required reviewer: nothing reaches production without approval.
+    environment: production
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Show what will be applied
+        run: npx supabase db push --dry-run --remote="$SUPABASE_DB_URL"
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      - name: Apply
+        run: npx supabase db push --remote="$SUPABASE_DB_URL"
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}

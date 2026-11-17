@@ -1,0 +1,70 @@
+import { describe, expect, it } from 'vitest'
+import { z } from 'zod'
+import { blocks, bodySchema, BlockRegistry } from '@/blocks'
+
+const id = (n: number) => `00000000-0000-4000-8000-00000000000${n}`
+
+describe('block registry', () => {
+  it('accepts a body made of known, well-formed blocks', () => {
+    const result = bodySchema.safeParse({
+      version: 1,
+      blocks: [
+        { id: id(1), type: 'heading', data: { text: 'I paid 33K for mine' } },
+        { id: id(2), type: 'verdict', data: { pick: 'NJ0151-88M', priceInr: 41900, reasons: ['Automatic for the least'], drawback: '40 h and 50 m.' } },
+      ],
+    })
+    expect(result.success).toBe(true)
+    if (result.success) expect(result.data.blocks[0]?.data).toEqual({ text: 'I paid 33K for mine', level: 2 })
+  })
+
+  it('rejects unknown block types', () => {
+    const result = bodySchema.safeParse({ version: 1, blocks: [{ id: id(1), type: 'raw_html', data: { html: '<script>alert(1)</script>' } }] })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects a verdict without a drawback (house rule)', () => {
+    const result = bodySchema.safeParse({ version: 1, blocks: [{ id: id(1), type: 'verdict', data: { pick: 'X', reasons: ['Y'] } }] })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects a price table without a source and date (house rule)', () => {
+    const result = bodySchema.safeParse({ version: 1, blocks: [{ id: id(1), type: 'price_table', data: { rows: [{ model: 'PRX', priceInr: 44000 }] } }] })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects a spec table whose rows do not match its columns', () => {
+    const data = { columns: ['A', 'B'], rows: [{ label: 'Reserve', values: ['40 h'] }] }
+    expect(bodySchema.safeParse({ version: 1, blocks: [{ id: id(1), type: 'spec_table', data }] }).success).toBe(false)
+  })
+
+  it('rejects Instagram embeds that are not instagram.com post links', () => {
+    const bad = { version: 1, blocks: [{ id: id(1), type: 'instagram_embed', data: { permalink: 'https://evil.example/p/abcdef/' } }] }
+    expect(bodySchema.safeParse(bad).success).toBe(false)
+  })
+
+  it('rejects duplicate block ids and unsupported versions', () => {
+    const block = { id: id(1), type: 'text', data: { text: 'a' } }
+    expect(bodySchema.safeParse({ version: 1, blocks: [block, block] }).success).toBe(false)
+    expect(bodySchema.safeParse({ version: 2, blocks: [] }).success).toBe(false)
+  })
+
+  it('gives every block a valid empty state and plain text', () => {
+    for (const def of blocks.list()) {
+      const parsed = def.schema.safeParse(def.empty())
+      expect(parsed.success, def.type).toBe(true)
+      if (parsed.success) expect(typeof def.toPlainText(parsed.data)).toBe('string')
+    }
+  })
+
+  it('lets a new block be added without touching existing code', () => {
+    const registry = new BlockRegistry().register({
+      type: 'pull_quote',
+      label: 'Pull quote',
+      schema: z.object({ quote: z.string().min(1) }),
+      empty: () => ({ quote: 'Quote' }),
+      toPlainText: (d) => (d as { quote: string }).quote,
+    })
+    expect(registry.bodySchema().safeParse({ version: 1, blocks: [{ id: id(1), type: 'pull_quote', data: { quote: 'Hi' } }] }).success).toBe(true)
+    expect(() => registry.register({ ...registry.get('pull_quote')! })).toThrow()
+  })
+})
