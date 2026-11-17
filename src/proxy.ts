@@ -21,7 +21,8 @@ export async function proxy(request: NextRequest) {
     `style-src 'self' 'nonce-${nonce}'`,
     // style="" attributes (set by React and next/image) cannot carry a nonce; they cannot run script.
     "style-src-attr 'unsafe-inline'",
-    `img-src 'self' blob: data: ${supabaseOrigin}`,
+    // Instagram's image servers: post thumbnails on the analytics and import screens.
+    `img-src 'self' blob: data: ${supabaseOrigin} https://*.cdninstagram.com https://*.fbcdn.net`,
     "font-src 'self'",
     `media-src 'self' blob: ${supabaseOrigin}`,
     `connect-src 'self' ${supabaseOrigin}`,
