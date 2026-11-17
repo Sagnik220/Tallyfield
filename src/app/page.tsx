@@ -7,6 +7,8 @@ import { IssuesCarousel, type Issue } from '@/components/site/issues-carousel'
 import { Ornaments, SiteFooter, SiteHeader } from '@/components/site/chrome'
 import { titleSize } from '@/components/site/title-size'
 import { mediaUrl } from '@/lib/media-url'
+import { StoriesRow, type Story } from '@/components/site/stories'
+import { listLiveStories, type StoryRow } from '@/data/stories.repo'
 import { safely } from '@/lib/safely'
 import { createPublicClient } from '@/lib/supabase/public'
 
@@ -33,7 +35,21 @@ function toIssue(post: PostSummary): Issue {
 }
 
 export default async function HomePage() {
-  const posts = await safely('home.latest', () => searchPosts(createPublicClient(), { q: '', tags: [], page: 1 }), [] as PostSummary[])
+  const db = createPublicClient()
+  const [posts, storyRows] = await Promise.all([
+    safely('home.latest', () => searchPosts(db, { q: '', tags: [], page: 1 }), [] as PostSummary[]),
+    safely('home.stories', () => listLiveStories(db), [] as StoryRow[]),
+  ])
+  const stories: Story[] = storyRows.map((s) => ({
+    id: s.id,
+    src: mediaUrl(s.media!.storage_path),
+    kind: s.media!.mime_type.startsWith('video/') ? 'video' : 'image',
+    alt: s.media!.alt,
+    caption: s.caption,
+    linkUrl: s.link_url,
+    linkLabel: s.link_label,
+    durationMs: s.duration_ms,
+  }))
   const cover = posts[0]
   const issues = posts.slice(0, 5).map(toIssue)
   const latest = posts.slice(0, 6)
@@ -42,6 +58,7 @@ export default async function HomePage() {
     <div className="tf-page">
       <Ornaments />
       <SiteHeader latestHref={cover ? `/posts/${cover.slug}` : null} />
+      <StoriesRow stories={stories} />
 
       <main>
         <section id="top" className="tf-wrap tf-hero">

@@ -7,6 +7,7 @@ const LINKS = [
   { href: '/admin', label: 'Posts' },
   { href: '/admin/new', label: 'Write a post' },
   { href: '/admin/import', label: 'Import from Instagram' },
+  { href: '/admin/stories', label: 'Stories' },
 ]
 
 export function AdminNav() {

@@ -1186,3 +1186,169 @@ img {
   color: var(--ink-cream);
   background: var(--panel-hi);
 }
+
+/* ------------------------------------------------------------------ stories */
+.tf-stories {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-top: 18px;
+  padding-bottom: 6px;
+  scrollbar-width: none;
+}
+.tf-stories::-webkit-scrollbar {
+  display: none;
+}
+.tf-story-ring {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 76px;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--grey-1);
+  font: inherit;
+  cursor: pointer;
+}
+.tf-story-thumb {
+  position: relative;
+  display: block;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  padding: 3px;
+  background: conic-gradient(from 210deg, var(--gold-light), var(--gold), #7e9470, var(--gold-light));
+}
+.tf-story-ring[data-seen='true'] .tf-story-thumb {
+  background: var(--stroke);
+}
+.tf-story-thumb img,
+.tf-story-thumb video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--bg);
+}
+.tf-story-all {
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  color: var(--on-gold);
+}
+.tf-story-name {
+  max-width: 76px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+.tf-story-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.92);
+  animation: tf-fade-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.tf-story-frame {
+  position: relative;
+  width: 100vw;
+  height: 100dvh;
+  background: #000;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+@media (min-width: 700px) {
+  .tf-story-frame {
+    height: min(92dvh, 860px);
+    width: calc(min(92dvh, 860px) * 9 / 16);
+    border: 1px solid var(--stroke);
+  }
+}
+.tf-story-bars {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  z-index: 3;
+  display: flex;
+  gap: 4px;
+}
+.tf-story-bars > span {
+  flex: 1;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.3);
+  overflow: hidden;
+}
+.tf-story-bars > span > span {
+  display: block;
+  height: 100%;
+  background: var(--ink-cream);
+  transform-origin: left center;
+}
+.tf-story-top {
+  position: absolute;
+  top: 20px;
+  left: 12px;
+  right: 8px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.tf-story-brand {
+  font-family: var(--display);
+  letter-spacing: 0.08em;
+  color: var(--ink-cream);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+}
+.tf-story-icon {
+  width: 36px;
+  height: 36px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 0;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+.tf-story-media {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+}
+.tf-story-media img,
+.tf-story-media video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+.tf-story-foot {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  padding: 60px 16px 20px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+.tf-story-foot p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.4;
+  color: #fff;
+}
