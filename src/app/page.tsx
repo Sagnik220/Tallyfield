@@ -1,11 +1,156 @@
+import Link from 'next/link'
 import { site } from '@/config/site'
+import { searchPosts } from '@/data/search.repo'
+import type { PostSummary } from '@/domain/post'
+import { HeroCard } from '@/components/site/hero-card'
+import { IssuesCarousel, type Issue } from '@/components/site/issues-carousel'
+import { Ornaments, SiteFooter, SiteHeader } from '@/components/site/chrome'
+import { mediaUrl } from '@/lib/media-url'
+import { safely } from '@/lib/safely'
+import { createPublicClient } from '@/lib/supabase/public'
 
-// Placeholder. The designed homepage (see the design canvas) is built here in the UI phase.
-export default function HomePage() {
+// Rebuilt at most every 5 minutes, and immediately when a post is published (see src/server/actions/posts.ts).
+export const revalidate = 300
+
+const pad = (n: number) => String(n).padStart(2, '0')
+
+const METHOD = [
+  { title: 'India prices', text: 'Every price is in rupees, with the retailer named and the date we checked it.' },
+  { title: 'Head to head', text: 'Official specs and official photos, side by side. No imagined capability.' },
+  { title: 'One pick, one drawback', text: "Each verdict names the one we'd buy, and the thing about it you should know first." },
+]
+
+function toIssue(post: PostSummary): Issue {
+  return {
+    slug: post.slug,
+    title: post.title,
+    deck: post.deck,
+    label: post.categoryName,
+    image: post.coverPath ? mediaUrl(post.coverPath) : null,
+    imageAlt: post.coverAlt ?? '',
+  }
+}
+
+export default async function HomePage() {
+  const posts = await safely('home.latest', () => searchPosts(createPublicClient(), { q: '', tags: [], page: 1 }), [] as PostSummary[])
+  const cover = posts[0]
+  const issues = posts.slice(0, 5).map(toIssue)
+  const latest = posts.slice(0, 6)
+
   return (
-    <main style={{ maxWidth: 1296, margin: '0 auto', padding: '96px 24px' }}>
-      <h1 style={{ color: 'var(--ink-cream)', margin: 0 }}>{site.name}</h1>
-      <p>{site.tagline}</p>
-    </main>
+    <div className="tf-page">
+      <Ornaments />
+      <SiteHeader latestHref={cover ? `/posts/${cover.slug}` : null} />
+
+      <main>
+        <section id="top" className="tf-wrap" style={{ paddingTop: 72, paddingBottom: 120, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(480px, 100%), 1fr))', gap: '72px 64px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+            <div className="tf-eyebrow">{cover ? `Cover story · ${cover.categoryName}` : 'Watches · Reviews · Buying guides'}</div>
+            <h1 className="tf-display" style={{ fontSize: 'clamp(60px, 8vw, 120px)', lineHeight: 0.95 }}>
+              {cover ? cover.title : 'Worth it, or not.'}
+            </h1>
+            <div className="tf-rule-line tf-rule-anim" />
+            <p className="tf-lead" style={{ maxWidth: 520 }}>
+              {cover?.deck || site.tagline}
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '20px 32px' }}>
+              {cover ? (
+                <Link className="tf-cta" href={`/posts/${cover.slug}`}>
+                  Read the verdict <span aria-hidden="true">→</span>
+                </Link>
+              ) : (
+                <a className="tf-cta" href={site.instagram}>
+                  Follow on Instagram <span aria-hidden="true">→</span>
+                </a>
+              )}
+              <Link className="tf-nav" href="/archive" style={{ fontSize: 15 }}>
+                All comparisons
+              </Link>
+            </div>
+          </div>
+          <HeroCard
+            src={cover?.coverPath ? mediaUrl(cover.coverPath) : null}
+            alt={cover?.coverAlt ?? ''}
+            badge={cover ? cover.categoryName : 'Coming soon'}
+            {...(cover ? { caption: cover.title } : {})}
+          />
+        </section>
+
+        {issues.length > 1 ? (
+          <section id="issues" style={{ borderTop: '1px solid var(--rule-dark)', padding: '104px 0 112px' }}>
+            <IssuesCarousel issues={issues} />
+          </section>
+        ) : null}
+
+        <section id="latest" style={{ borderTop: '1px solid var(--rule-dark)', padding: '104px 0 96px' }}>
+          <div className="tf-wrap">
+            <div className="tf-reveal" style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 48 }}>
+              <div className="tf-eyebrow">Latest</div>
+              <h2 className="tf-display" style={{ fontSize: 'clamp(44px, 5.4vw, 80px)' }}>
+                Worth it, or not.
+              </h2>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', borderTop: '2px solid var(--gold)' }}>
+              {latest.length > 0 ? (
+                latest.map((post, i) => (
+                  <Link key={post.id} className="tf-row tf-reveal" href={`/posts/${post.slug}`}>
+                    <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--grey-2)' }}>{pad(i + 1)}</span>
+                    <span style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <span className="tf-label">{post.categoryName}</span>
+                      <span style={{ fontFamily: 'var(--display)', fontSize: 'clamp(28px, 3.2vw, 44px)', lineHeight: 1.02, textTransform: 'uppercase' }}>{post.title}</span>
+                    </span>
+                    <span className="tf-arrow" aria-hidden="true">
+                      →
+                    </span>
+                  </Link>
+                ))
+              ) : (
+                <a className="tf-row" href={site.instagram}>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--grey-2)' }}>01</span>
+                  <span style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <span className="tf-label">First issues coming soon</span>
+                    <span style={{ fontFamily: 'var(--display)', fontSize: 'clamp(28px, 3.2vw, 44px)', lineHeight: 1.02, textTransform: 'uppercase' }}>
+                      Until then, every verdict is on Instagram.
+                    </span>
+                  </span>
+                  <span className="tf-arrow" aria-hidden="true">
+                    →
+                  </span>
+                </a>
+              )}
+            </div>
+          </div>
+        </section>
+
+        <section id="method" style={{ background: 'var(--panel)', borderTop: '1px solid var(--stroke)', borderBottom: '1px solid var(--stroke)', padding: '104px 0' }}>
+          <div className="tf-wrap" style={{ display: 'flex', flexDirection: 'column', gap: 64 }}>
+            <div className="tf-reveal" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div className="tf-eyebrow">How we judge</div>
+              <h2 className="tf-display" style={{ fontSize: 'clamp(44px, 5.4vw, 80px)' }}>
+                Thoughtful comparisons.
+                <br />
+                Clearer choices.
+              </h2>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(300px, 100%), 1fr))', gap: '48px 40px' }}>
+              {METHOD.map((m, i) => (
+                <div key={m.title} className="tf-point tf-reveal">
+                  <div>
+                    <h3>
+                      {pad(i + 1)}&nbsp;&nbsp;{m.title}
+                    </h3>
+                    <p className="tf-body" style={{ lineHeight: 1.45 }}>
+                      {m.text}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <SiteFooter />
+    </div>
   )
 }

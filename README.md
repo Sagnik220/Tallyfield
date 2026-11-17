@@ -10,9 +10,10 @@ The magazine website for [@tallyfield](https://www.instagram.com/tallyfield/): w
 |---|---|
 | Database schema, access rules, search | Built. 55 SQL checks pass on Postgres 16. |
 | Application layers (domain, blocks, data, services, importers, actions) | Built. 33 unit tests pass; lint, type check and production build pass. |
-| CI/CD workflows | Written. Not yet run on GitHub (no repository exists yet). |
-| Public pages and admin screens | **Placeholders only.** The approved designs are built on top of this in the next phase. |
-| Sign-in form | Not built. `/admin` already redirects signed-out visitors to `/login`. |
+| CI/CD workflows | Running on GitHub (Sagnik220/Tallyfield). Vercel deploys every push to `main`. |
+| Public pages | Built from the design: Homepage, Article (`/posts/[slug]`), Archive (search, categories, tags), About. Cached and rebuilt on publish. |
+| Admin screens | Posts list (publish / unpublish) and Import from Instagram (fetch, pick cover, edit details, publish). The block editor is next. |
+| Sign-in | Email sign-in link (`/login` → `/auth/callback`). New accounts get no role until an admin grants one. |
 | Instagram import | Logic built and tested against a simulated API. **Not yet tried against the real Instagram API.** |
 
 ## How it fits together

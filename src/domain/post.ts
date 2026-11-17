@@ -9,23 +9,40 @@ export type PostKind = (typeof POST_KINDS)[number]
 
 const id = z.uuid()
 
-/** What the editor submits. The database enforces the same limits again. */
-export const postInputSchema = z.object({
+/** Field rules shared by create and update. No defaults here: see below. */
+const postFields = {
   title: z.string().trim().min(1).max(160),
-  deck: z.string().trim().max(300).default(''),
-  slug: z.string().regex(SLUG_PATTERN).max(120).optional(),
-  kind: z.enum(POST_KINDS).default('article'),
+  deck: z.string().trim().max(300),
+  slug: z.string().regex(SLUG_PATTERN).max(120),
+  kind: z.enum(POST_KINDS),
   categoryId: id,
-  tagIds: z.array(id).max(20).default([]),
-  coverMediaId: id.nullable().default(null),
+  tagIds: z.array(id).max(20),
+  coverMediaId: id.nullable(),
   body: bodySchema,
-  sourceUrl: z.url({ protocol: /^https$/ }).nullable().default(null),
-  pricesCheckedOn: z.iso.date().nullable().default(null),
-  priceSources: z.string().trim().max(300).default(''),
+  sourceUrl: z.url({ protocol: /^https$/ }).nullable(),
+  pricesCheckedOn: z.iso.date().nullable(),
+  priceSources: z.string().trim().max(300),
+}
+
+/** What the editor submits for a new post. The database enforces the same limits again. */
+export const postInputSchema = z.object({
+  ...postFields,
+  deck: postFields.deck.default(''),
+  slug: postFields.slug.optional(),
+  kind: postFields.kind.default('article'),
+  tagIds: postFields.tagIds.default([]),
+  coverMediaId: postFields.coverMediaId.default(null),
+  sourceUrl: postFields.sourceUrl.default(null),
+  pricesCheckedOn: postFields.pricesCheckedOn.default(null),
+  priceSources: postFields.priceSources.default(''),
 })
 export type PostInput = z.infer<typeof postInputSchema>
 
-export const postUpdateSchema = postInputSchema.partial().extend({ id })
+/**
+ * An update changes only the fields it sends. Built from the default-free fields on purpose:
+ * zod applies .default() even inside .partial(), which would silently wipe tags, the source link and so on.
+ */
+export const postUpdateSchema = z.object(postFields).partial().extend({ id })
 export type PostUpdate = z.infer<typeof postUpdateSchema>
 
 export const postIdSchema = z.object({ id })

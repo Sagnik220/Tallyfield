@@ -1,3 +1,4 @@
+/* Tallyfield design tokens, mirrored from src/config/theme.ts. */
 :root {
   --bg: #050505;
   --ink-cream: #f6e7d4;
@@ -8,8 +9,24 @@
   --grey-3: #7d766a;
   --panel: #10221e;
   --panel-hi: #142b25;
+  --panel-side: #0a1513;
   --rule-dark: #2c3d38;
   --stroke: #33463f;
+  --on-gold: #061412;
+  --warn: #d9a35b;
+  --ornament: #526044;
+  --display: var(--font-display), 'Bebas Neue', Impact, sans-serif;
+  --sans: var(--font-sans), Arimo, 'Helvetica Neue', Arial, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 html,
@@ -17,9 +34,572 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--grey-1);
-  font-family: Inter, Arimo, 'Helvetica Neue', Arial, sans-serif;
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
 }
 
 a {
   color: var(--gold-light);
+}
+a:hover {
+  color: var(--ink-cream);
+}
+
+img {
+  max-width: 100%;
+}
+
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------ type */
+.tf-display {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 400;
+  letter-spacing: 0.011em;
+  line-height: 0.98;
+  text-transform: uppercase;
+  color: var(--ink-cream);
+}
+.tf-h1 {
+  font-size: clamp(56px, 7.6vw, 116px);
+  line-height: 0.95;
+}
+.tf-h2 {
+  font-size: clamp(42px, 5vw, 76px);
+}
+.tf-eyebrow {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold-light);
+}
+.tf-label {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold-light);
+}
+.tf-lead {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.4;
+  color: var(--grey-1);
+}
+.tf-body {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.55;
+  color: var(--grey-1);
+}
+.tf-note {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--grey-2);
+}
+
+/* ------------------------------------------------------------------ layout */
+.tf-wrap {
+  max-width: 1296px;
+  margin: 0 auto;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+.tf-section {
+  border-top: 1px solid var(--rule-dark);
+  padding-top: 96px;
+  padding-bottom: 96px;
+}
+.tf-rule-line {
+  height: 2px;
+  width: 100%;
+  max-width: 520px;
+  background: var(--gold);
+  opacity: 0.55;
+}
+.tf-split {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr));
+  gap: 56px 64px;
+  align-items: center;
+}
+.tf-page {
+  position: relative;
+  overflow: hidden;
+  min-height: 100vh;
+}
+
+/* ------------------------------------------------------------------ links and buttons */
+.tf-nav {
+  color: var(--grey-1);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 13px 0;
+}
+.tf-nav:hover {
+  color: var(--ink-cream);
+}
+.tf-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 60px;
+  padding: 0 32px;
+  background: var(--gold);
+  color: var(--on-gold);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+  transition:
+    transform 0.3s ease,
+    background-color 0.3s ease;
+}
+.tf-cta:hover {
+  transform: translateY(-3px);
+  background-color: var(--gold-light);
+  color: var(--on-gold);
+}
+.tf-btn {
+  width: 56px;
+  height: 56px;
+  background: var(--panel);
+  border: 1px solid var(--stroke);
+  color: var(--ink-cream);
+  font-size: 22px;
+  cursor: pointer;
+  font-family: inherit;
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease;
+}
+.tf-btn:hover {
+  background-color: var(--panel-hi);
+  border-color: var(--gold);
+}
+.tf-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--stroke);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--grey-1);
+  text-decoration: none;
+  transition:
+    border-color 0.25s ease,
+    color 0.25s ease;
+}
+.tf-tag:hover {
+  color: var(--ink-cream);
+  border-color: var(--gold);
+}
+
+/* Latest list rows */
+.tf-row {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  padding: 26px 12px 26px 0;
+  border-bottom: 1px solid var(--rule-dark);
+  color: var(--ink-cream);
+  text-decoration: none;
+  transition:
+    padding-left 0.35s ease,
+    background-color 0.35s ease;
+}
+.tf-row:hover {
+  color: var(--ink-cream);
+  padding-left: 20px;
+  background-color: var(--panel);
+}
+.tf-arrow {
+  font-size: 26px;
+  color: var(--grey-2);
+  transition:
+    transform 0.35s ease,
+    color 0.35s ease;
+}
+.tf-row:hover .tf-arrow {
+  transform: translateX(10px);
+  color: var(--gold-light);
+}
+
+/* Numbered points with a gold bar */
+.tf-point {
+  display: flex;
+  gap: 23px;
+}
+.tf-point::before {
+  content: '';
+  flex: 0 0 5px;
+  background: var(--gold);
+}
+.tf-point h3 {
+  margin: 0 0 10px;
+  font-size: 24px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--ink-cream);
+}
+
+/* Tables */
+.tf-table-wrap {
+  overflow-x: auto;
+}
+.tf-table {
+  width: 100%;
+  min-width: 620px;
+  border-collapse: collapse;
+}
+.tf-table th {
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold-light);
+  border-bottom: 2px solid var(--gold);
+}
+.tf-table td {
+  padding: 15px 14px;
+  font-size: 18px;
+  color: var(--grey-1);
+}
+.tf-table tbody tr:nth-child(even) {
+  background: var(--panel);
+}
+.tf-table td.tf-rowlabel {
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--grey-2);
+}
+.tf-table td.tf-strong {
+  font-weight: 700;
+  color: var(--ink-cream);
+}
+.tf-table td.tf-price {
+  font-weight: 700;
+  color: var(--gold-light);
+}
+
+/* Image tilt on hover */
+.tf-stage {
+  perspective: 1200px;
+}
+.tf-tilt {
+  transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.1, 1);
+}
+.tf-stage:hover .tf-tilt {
+  transform: rotateY(-16deg) rotateX(5deg) scale(1.05);
+}
+
+/* Archive / related tiles */
+.tf-tile {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--stroke);
+  background: var(--bg);
+  color: var(--ink-cream);
+  text-decoration: none;
+  transition:
+    transform 0.5s cubic-bezier(0.2, 0.7, 0.1, 1),
+    border-color 0.4s ease;
+}
+.tf-tile:hover {
+  color: var(--ink-cream);
+  transform: translateY(-8px);
+  border-color: var(--gold);
+}
+
+/* Slide gallery */
+.tf-gallery {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 8px 24px 24px;
+  scrollbar-color: var(--stroke) transparent;
+}
+.tf-gallery > figure {
+  flex: 0 0 min(540px, 86vw);
+  margin: 0;
+  scroll-snap-align: center;
+}
+
+/* ------------------------------------------------------------------ motion */
+@keyframes tf-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-14px);
+  }
+}
+@keyframes tf-sheen {
+  0%,
+  55% {
+    transform: translateX(-140%) skewX(-18deg);
+  }
+  85%,
+  100% {
+    transform: translateX(260%) skewX(-18deg);
+  }
+}
+@keyframes tf-rise {
+  from {
+    opacity: 0.35;
+    transform: translateY(44px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes tf-rule {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.tf-float {
+  animation: tf-float 7s ease-in-out infinite;
+}
+.tf-sheen {
+  animation: tf-sheen 6.5s ease-in-out infinite;
+}
+.tf-rule-anim {
+  transform-origin: left center;
+  animation: tf-rule 1.4s cubic-bezier(0.2, 0.7, 0.1, 1) both;
+}
+@supports (animation-timeline: view()) {
+  .tf-reveal {
+    animation: tf-rise linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 45%;
+  }
+}
+.tf-card {
+  transition:
+    transform 0.9s cubic-bezier(0.2, 0.7, 0.1, 1),
+    opacity 0.9s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .tf-float,
+  .tf-sheen,
+  .tf-rule-anim,
+  .tf-reveal {
+    animation: none;
+  }
+  .tf-card,
+  .tf-tilt,
+  .tf-tile,
+  .tf-row,
+  .tf-cta {
+    transition: none;
+  }
+}
+
+/* ------------------------------------------------------------------ admin */
+.tf-admin {
+  min-height: 100vh;
+  display: flex;
+  flex-wrap: wrap;
+}
+.tf-side-nav {
+  flex: 1 1 240px;
+  max-width: 100%;
+  background: var(--panel-side);
+  border-right: 1px solid var(--rule-dark);
+  padding: 28px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.tf-side {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 20px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--grey-1);
+  text-decoration: none;
+  border-left: 3px solid transparent;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+.tf-side:hover,
+.tf-side[aria-current='page'] {
+  color: var(--ink-cream);
+  background-color: var(--panel-hi);
+}
+.tf-side[aria-current='page'] {
+  border-left-color: var(--gold);
+}
+.tf-admin-main {
+  flex: 999 1 560px;
+  min-width: 0;
+  padding: 44px clamp(20px, 4vw, 56px) 72px;
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+.tf-panel {
+  background: var(--panel);
+  border: 1px solid var(--stroke);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.tf-panel h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--ink-cream);
+}
+.tf-field {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  background: var(--bg);
+  border: 1px solid var(--stroke);
+  color: var(--ink-cream);
+  font-family: inherit;
+  font-size: 17px;
+}
+.tf-field:focus {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+.tf-field-label {
+  display: block;
+  margin-bottom: 8px;
+}
+.tf-gold,
+.tf-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 26px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+}
+.tf-gold {
+  background: var(--gold);
+  color: var(--on-gold);
+  border: 0;
+  transition:
+    background-color 0.25s ease,
+    transform 0.25s ease;
+}
+.tf-gold:hover:not(:disabled) {
+  background-color: var(--gold-light);
+  color: var(--on-gold);
+  transform: translateY(-2px);
+}
+.tf-ghost {
+  background: var(--panel);
+  color: var(--ink-cream);
+  border: 1px solid var(--stroke);
+  transition:
+    border-color 0.25s ease,
+    background-color 0.25s ease;
+}
+.tf-ghost:hover:not(:disabled) {
+  border-color: var(--gold);
+  background-color: var(--panel-hi);
+  color: var(--ink-cream);
+}
+.tf-gold:disabled,
+.tf-ghost:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+.tf-small {
+  min-height: 40px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+.tf-alert {
+  padding: 14px 18px;
+  border: 1px solid var(--warn);
+  color: var(--ink-cream);
+  background: rgba(217, 163, 91, 0.08);
+  font-size: 16px;
+  line-height: 1.45;
+}
+.tf-success {
+  border-color: var(--gold);
+  background: var(--panel-hi);
+}
+.tf-thumb {
+  position: relative;
+  padding: 0;
+  background: var(--bg);
+  border: 2px solid var(--stroke);
+  cursor: pointer;
+  display: block;
+  transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.1, 1);
+}
+.tf-thumb[aria-pressed='true'] {
+  border-color: var(--gold);
+}
+.tf-thumb:hover {
+  transform: translateY(-6px) scale(1.03);
+}
+.tf-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: 1px solid var(--stroke);
+  color: var(--grey-1);
+}
+.tf-status[data-status='published'] {
+  border-color: var(--gold);
+  color: var(--gold-light);
+}
+.tf-status[data-status='archived'] {
+  color: var(--grey-3);
 }
