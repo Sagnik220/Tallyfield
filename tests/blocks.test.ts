@@ -124,3 +124,13 @@ describe('rich text sanitiser', () => {
     expect(bodySchema.safeParse({ version: 1, blocks: [{ id: uuid, type: 'rich_text', data: { doc: clean } }] }).success).toBe(true)
   })
 })
+
+describe('gallery caption limit', () => {
+  it('accepts captions far beyond Instagram 2,200 characters, up to 50,000', async () => {
+    const { CAPTION_MAX } = await import('@/blocks')
+    expect(CAPTION_MAX).toBe(50_000)
+    const body = (caption: string) => ({ version: 1, blocks: [{ id: crypto.randomUUID(), type: 'gallery', data: { mediaIds: [id(1)], caption } }] })
+    expect(bodySchema.safeParse(body('a'.repeat(10_000))).success).toBe(true)
+    expect(bodySchema.safeParse(body('a'.repeat(50_001))).success).toBe(false)
+  })
+})

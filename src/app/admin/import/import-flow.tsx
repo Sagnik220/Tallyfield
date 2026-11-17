@@ -1,5 +1,7 @@
 'use client'
 
+import { CAPTION_MAX } from '@/blocks'
+import { CharCount } from '@/components/admin/char-count'
 import Link from 'next/link'
 import { useState, type FormEvent } from 'react'
 import type { ActionResult } from '@/domain/result'
@@ -218,7 +220,8 @@ export function ImportFlow({ categories, initial, prefill = '' }: Props) {
                 <label htmlFor="p-cap" className="tf-label tf-field-label">
                   Caption from Instagram
                 </label>
-                <textarea id="p-cap" className="tf-field" rows={6} maxLength={2200} value={caption} onChange={(e) => setCaption(e.target.value)} style={{ resize: 'vertical' }} />
+                <textarea id="p-cap" className="tf-field" rows={8} maxLength={CAPTION_MAX} value={caption} onChange={(e) => setCaption(e.target.value)} style={{ resize: 'vertical' }} aria-describedby="p-cap-count" />
+                <CharCount id="p-cap-count" length={caption.length} max={CAPTION_MAX} />
               </div>
             ) : null}
           </section>

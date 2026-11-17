@@ -1,3 +1,4 @@
+import { CAPTION_MAX } from '@/blocks'
 import type { ActionContext } from '@/lib/action'
 import type { Db } from '@/lib/supabase/server'
 import { AppError } from '@/domain/result'
@@ -60,7 +61,7 @@ export async function importFromLink({ db, user }: ActionContext<Db>, request: I
     cover_media_id: mediaIds[0] ?? null,
     source_url: imported.permalink,
     author_id: user.id,
-    body: { version: 1, blocks: [{ id: crypto.randomUUID(), type: 'gallery', data: { mediaIds, caption: imported.caption.slice(0, 2200) } }] },
+    body: { version: 1, blocks: [{ id: crypto.randomUUID(), type: 'gallery', data: { mediaIds, caption: imported.caption.slice(0, CAPTION_MAX) } }] },
   })
   await posts.setPostMedia(db, post.id, mediaIds)
   await insertSource(db, { postId: post.id, provider: imported.provider, externalId: imported.externalId, permalink: imported.permalink, caption: imported.caption })

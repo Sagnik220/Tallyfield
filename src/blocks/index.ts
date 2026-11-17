@@ -1,5 +1,6 @@
 import { BlockRegistry } from './registry'
 import { gallery } from './definitions/gallery'
+export { CAPTION_MAX } from './definitions/gallery'
 import { heading } from './definitions/heading'
 import { image } from './definitions/image'
 import { instagramEmbed } from './definitions/instagram-embed'

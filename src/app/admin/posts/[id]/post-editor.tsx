@@ -4,7 +4,8 @@ import type { JSONContent } from '@tiptap/core'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
-import { sanitizeRichDoc, type StoredBlock } from '@/blocks'
+import { CAPTION_MAX, sanitizeRichDoc, type StoredBlock } from '@/blocks'
+import { CharCount } from '@/components/admin/char-count'
 import { RichEditor } from '@/components/editor/rich-editor'
 import { slugify } from '@/domain/slug'
 import { mediaUrl } from '@/lib/media-url'
@@ -162,7 +163,8 @@ function GalleryEditor({
       <label className="tf-label tf-field-label" htmlFor="gallery-caption">
         Caption under the slides
       </label>
-      <textarea id="gallery-caption" className="tf-field" rows={5} maxLength={2200} value={String(data.caption ?? '')} onChange={(e) => onChange({ ...data, caption: e.target.value })} style={{ resize: 'vertical' }} />
+      <textarea id="gallery-caption" className="tf-field" rows={8} maxLength={CAPTION_MAX} value={String(data.caption ?? '')} onChange={(e) => onChange({ ...data, caption: e.target.value })} style={{ resize: 'vertical' }} aria-describedby="gallery-caption-count" />
+      <CharCount id="gallery-caption-count" length={String(data.caption ?? '').length} max={CAPTION_MAX} />
       {String(data.caption ?? '').trim() ? (
         <button type="button" className="tf-ghost tf-small" style={{ alignSelf: 'flex-start' }} onClick={onCaptionToText}>
           Move caption into a rich text section ↓
