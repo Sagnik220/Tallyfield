@@ -367,6 +367,133 @@ img {
   scroll-snap-align: center;
 }
 
+/* ------------------------------------------------------------------ issues cover-flow */
+.tf-flow {
+  --card-w: min(360px, 66vw);
+  position: relative;
+  height: calc(var(--card-w) * 1.25 + 150px);
+  margin-top: 56px;
+  perspective: 1800px;
+  perspective-origin: 50% 40%;
+  transform-style: preserve-3d;
+  overflow: hidden;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+  outline: none;
+}
+.tf-flow[data-dragging='true'] {
+  cursor: grabbing;
+}
+.tf-flow:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--gold);
+}
+.tf-flow-card {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  width: var(--card-w);
+  margin-left: calc(var(--card-w) / -2);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  border: 1px solid var(--stroke);
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: inherit;
+  box-shadow: 0 50px 90px rgba(0, 0, 0, 0.75);
+  transform-style: preserve-3d;
+  transform: translateX(calc(var(--off) * 66%)) translateZ(calc(var(--dist) * -260px)) rotateY(calc(var(--off) * -38deg))
+    rotateX(var(--tx)) rotateY(var(--ty)) scale(calc(1 - var(--dist) * 0.04));
+  filter: brightness(calc(1 - var(--dist) * 0.4));
+  transition:
+    transform 1.1s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.9s ease,
+    filter 0.9s ease,
+    border-color 0.4s ease;
+  will-change: transform;
+  -webkit-box-reflect: below 10px linear-gradient(transparent 78%, rgba(255, 255, 255, 0.1));
+}
+.tf-flow[data-dragging='true'] .tf-flow-card {
+  transition:
+    opacity 0.2s ease,
+    filter 0.2s ease;
+}
+.tf-flow-card[data-front='true'] {
+  border-color: var(--gold);
+}
+.tf-flow-card[data-front='true']:hover {
+  color: inherit;
+}
+.tf-flow-img {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--panel);
+}
+.tf-flow-img img {
+  pointer-events: none;
+}
+.tf-flow-sheen {
+  position: absolute;
+  top: -10%;
+  left: 0;
+  width: 34%;
+  height: 120%;
+  background: linear-gradient(90deg, rgba(246, 231, 212, 0), rgba(246, 231, 212, 0.14), rgba(246, 231, 212, 0));
+  transform: translateX(-140%) skewX(-18deg);
+  opacity: 0;
+}
+.tf-flow-card[data-front='true'] .tf-flow-sheen {
+  opacity: 1;
+  animation: tf-sheen 6.5s ease-in-out infinite;
+}
+.tf-flow-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--rule-dark);
+}
+.tf-flow-caption {
+  max-width: 760px;
+  margin: 8px auto 0;
+  padding: 0 24px;
+  min-height: 132px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  animation: tf-fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes tf-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tf-flow-card,
+  .tf-flow-caption {
+    transition: none;
+    animation: none;
+  }
+  .tf-flow-card[data-front='true'] .tf-flow-sheen {
+    animation: none;
+  }
+}
+
 /* ------------------------------------------------------------------ motion */
 @keyframes tf-float {
   0%,
