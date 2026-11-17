@@ -22,15 +22,20 @@ export default async function AdminPostsPage() {
             Posts
           </h1>
         </div>
-        <Link className="tf-gold" href="/admin/import">
-          Import from Instagram
-        </Link>
+        <span style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <Link className="tf-ghost" href="/admin/import">
+            Import from Instagram
+          </Link>
+          <Link className="tf-gold" href="/admin/new">
+            Write a post
+          </Link>
+        </span>
       </div>
 
       {posts.length === 0 ? (
         <section style={{ border: '1px dashed var(--stroke)', padding: '56px 28px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center' }}>
           <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--ink-cream)' }}>No posts yet</div>
-          <p className="tf-note">Import your first carousel from Instagram to get started.</p>
+          <p className="tf-note">Import a carousel from Instagram, or write a post for the site.</p>
         </section>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', borderTop: '2px solid var(--gold)' }}>
@@ -54,7 +59,7 @@ export default async function AdminPostsPage() {
                       Updated {when(post.updated_at)}
                     </span>
                   </span>
-                  <Link href={`/admin/import?post=${post.id}`} style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink-cream)', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <Link href={`/admin/posts/${post.id}`} style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink-cream)', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {post.title}
                   </Link>
                   {post.status === 'published' ? (

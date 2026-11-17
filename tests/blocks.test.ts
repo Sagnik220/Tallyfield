@@ -102,3 +102,25 @@ describe('rich text block', () => {
     expect(bad([{ type: 'media', attrs: { mediaId: uuid, path: '../../etc/passwd', kind: 'image' } }])).toBe(false)
   })
 })
+
+describe('rich text sanitiser', () => {
+  it('keeps the words and drops styles that are not allowed', async () => {
+    const { sanitizeRichDoc } = await import('@/blocks')
+    const pasted = {
+      type: 'doc',
+      content: [
+        { type: 'paragraph', content: [{ type: 'text', text: 'Hello', marks: [{ type: 'textStyle', attrs: { fontSize: '13.33px', color: 'rgb(1,2,3)' } }, { type: 'bold' }] }] },
+        { type: 'table', content: [{ type: 'tableRow', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'cell' }] }] }] },
+        { type: 'paragraph', content: [{ type: 'text', text: 'x', marks: [{ type: 'link', attrs: { href: 'javascript:alert(1)' } }] }] },
+        { type: 'heading', attrs: { level: 1 }, content: [{ type: 'text', text: 'Title' }] },
+      ],
+    }
+    const clean = sanitizeRichDoc(pasted)
+    expect(clean.content[0]).toEqual({ type: 'paragraph', content: [{ type: 'text', text: 'Hello', marks: [{ type: 'bold' }] }] })
+    expect(JSON.stringify(clean)).toContain('cell')
+    expect(JSON.stringify(clean)).not.toContain('javascript')
+    expect(clean.content.at(-1)).toMatchObject({ type: 'heading', attrs: { level: 2 } })
+    const uuid = '00000000-0000-4000-8000-000000000009'
+    expect(bodySchema.safeParse({ version: 1, blocks: [{ id: uuid, type: 'rich_text', data: { doc: clean } }] }).success).toBe(true)
+  })
+})

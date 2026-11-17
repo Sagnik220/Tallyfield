@@ -45,16 +45,23 @@ export async function getMediaByIds(db: Db, ids: string[]): Promise<Record<strin
   return Object.fromEntries(((data ?? []) as MediaRow[]).map((m) => [m.id, m]))
 }
 
-/** Media ids referenced anywhere in a post body (image, gallery and verdict blocks). */
+/** Media ids referenced anywhere in a post body: image, gallery and verdict blocks, and media inside rich text. */
 export function mediaIdsInBody(body: Body): string[] {
   const ids: string[] = []
+  const walk = (node: unknown) => {
+    if (!node || typeof node !== 'object') return
+    const n = node as { type?: string; attrs?: { mediaId?: unknown }; content?: unknown[] }
+    if (n.type === 'media' && typeof n.attrs?.mediaId === 'string') ids.push(n.attrs.mediaId)
+    n.content?.forEach(walk)
+  }
   for (const block of body.blocks) {
     const data = block.data as Record<string, unknown> | null
     if (!data) continue
     if (typeof data.mediaId === 'string') ids.push(data.mediaId)
     if (Array.isArray(data.mediaIds)) ids.push(...data.mediaIds.filter((x): x is string => typeof x === 'string'))
+    if (block.type === 'rich_text') walk(data.doc)
   }
-  return ids
+  return [...new Set(ids)]
 }
 
 export async function getPublicArticle(db: Db, slug: string): Promise<PublicArticle | null> {
@@ -72,4 +79,21 @@ export async function getPublicArticle(db: Db, slug: string): Promise<PublicArti
     .filter((t): t is TagRow => Boolean(t))
     .sort((a, b) => a.name.localeCompare(b.name))
   return { post, category: (categoryResult.data as CategoryRow | null) ?? null, tags, media }
+}
+
+export interface TagWithId extends TagRow {
+  id: string
+}
+
+/** Every tag with its id, for the editor's tag picker. */
+export async function listAllTags(db: Db): Promise<TagWithId[]> {
+  const { data, error } = await db.from('tags').select('id, slug, name').order('name')
+  if (error) raise(error, 'listAllTags')
+  return (data ?? []) as TagWithId[]
+}
+
+export async function getPostTagIds(db: Db, postId: string): Promise<string[]> {
+  const { data, error } = await db.from('post_tags').select('tag_id').eq('post_id', postId)
+  if (error) raise(error, 'getPostTagIds')
+  return ((data ?? []) as { tag_id: string }[]).map((r) => r.tag_id)
 }

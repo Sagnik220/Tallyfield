@@ -29,3 +29,5 @@ export type { RichMark, RichNode } from './definitions/rich-text'
 
 export { BlockRegistry } from './registry'
 export type { BlockDefinition, Body, StoredBlock } from './types'
+
+export { sanitizeRichDoc } from './sanitize-rich'

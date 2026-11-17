@@ -243,8 +243,8 @@ export function ImportFlow({ categories, initial }: Props) {
               <button className="tf-ghost" type="button" disabled={Boolean(busy)} onClick={() => save(false)}>
                 {busy === 'save' ? 'Saving…' : draft.status === 'published' ? 'Save' : 'Save as draft'}
               </button>
-              <Link className="tf-ghost" href="/admin">
-                Back to posts
+              <Link className="tf-ghost" href={`/admin/posts/${draft.id}`}>
+                Customise in the editor →
               </Link>
             </div>
           </section>

@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { blocks, type StoredBlock } from '@/blocks'
 import type { MediaRow } from '@/data/types'
 import { mediaUrl } from '@/lib/media-url'
+import { RichText } from './rich-text'
 
 /**
  * Turns a post body into the article layout from the design.
@@ -228,6 +229,8 @@ function Inline({ block, media }: { block: Block; media: Media }): ReactNode {
       return <PriceTable data={d} />
     case 'instagram_embed':
       return <InstagramEmbed data={d} />
+    case 'rich_text':
+      return <RichText doc={d.doc as { content: [] }} />
     default:
       return null
   }

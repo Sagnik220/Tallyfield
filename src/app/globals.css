@@ -469,6 +469,101 @@ img {
   scroll-snap-align: center;
 }
 
+/* ------------------------------------------------------------------ rich text (articles) */
+.tf-rich {
+  max-width: 820px;
+  font-size: var(--t-body);
+  line-height: 1.7;
+  color: var(--grey-1);
+  overflow-wrap: anywhere;
+}
+.tf-rich > * + * {
+  margin-top: 1em;
+}
+.tf-rich p {
+  margin: 0;
+}
+.tf-rich .tf-rich-h2 {
+  font-size: clamp(26px, 3vw, 42px);
+  margin-top: 1.4em;
+}
+.tf-rich .tf-rich-h3 {
+  margin: 1.4em 0 0;
+  font-size: var(--t-h3);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--ink-cream);
+}
+.tf-rich .tf-rich-h4 {
+  margin: 1.2em 0 0;
+  font-size: var(--t-body);
+  font-weight: 700;
+  color: var(--ink-cream);
+}
+.tf-rich ul,
+.tf-rich ol {
+  margin: 0;
+  padding-left: 1.4em;
+}
+.tf-rich li + li {
+  margin-top: 0.35em;
+}
+.tf-rich li::marker {
+  color: var(--gold);
+}
+.tf-rich blockquote {
+  margin: 1.4em 0;
+  padding: 0 0 0 22px;
+  border-left: 4px solid var(--gold);
+  font-size: var(--t-lead);
+  color: var(--ink-cream);
+}
+.tf-rich hr {
+  border: 0;
+  height: 1px;
+  background: var(--rule-dark);
+  margin: 2em 0;
+}
+.tf-rich a {
+  color: var(--gold-light);
+  text-underline-offset: 3px;
+}
+.tf-rich-media {
+  margin: 1.6em 0;
+}
+.tf-rich-media video {
+  display: block;
+  width: 100%;
+  max-height: 80vh;
+  background: #000;
+}
+.tf-rich-media figcaption {
+  margin-top: 10px;
+  font-size: var(--t-label);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold-light);
+}
+.tf-rich-embed {
+  margin: 1.6em 0;
+}
+.tf-rich-embed iframe {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--stroke);
+}
+.tf-rich-embed-video iframe {
+  aspect-ratio: 16 / 9;
+}
+.tf-rich-embed-ig iframe {
+  max-width: 540px;
+  height: 720px;
+  margin: 0 auto;
+  background: #fff;
+}
+
 /* ------------------------------------------------------------------ issues cover-flow */
 .tf-flow {
   --card-w: min(360px, 66vw);
@@ -867,4 +962,227 @@ img {
 }
 .tf-status[data-status='archived'] {
   color: var(--grey-3);
+}
+
+/* ------------------------------------------------------------------ admin editor */
+.tf-ed {
+  border: 1px solid var(--stroke);
+  background: var(--bg);
+}
+.tf-ed-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  padding: 8px 10px;
+  background: var(--panel-side);
+  border-bottom: 1px solid var(--stroke);
+}
+.tf-ed-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.tf-ed-btn {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 7px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--ink-cream);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.tf-ed-btn:hover:not(:disabled) {
+  border-color: var(--stroke);
+  background: var(--panel-hi);
+}
+.tf-ed-btn[aria-pressed='true'] {
+  border-color: var(--gold);
+  background: var(--panel-hi);
+}
+.tf-ed-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.tf-ed-select {
+  height: 32px;
+  padding: 0 6px;
+  background: var(--bg);
+  border: 1px solid var(--stroke);
+  color: var(--ink-cream);
+  font: inherit;
+  font-size: 13px;
+}
+.tf-ed-panel {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0 2px;
+}
+.tf-ed-emoji button {
+  width: 34px;
+  height: 34px;
+  font-size: 20px;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+.tf-ed-emoji button:hover {
+  border-color: var(--stroke);
+  background: var(--panel-hi);
+}
+.tf-ed-swatch {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--stroke);
+  cursor: pointer;
+}
+.tf-ed-content {
+  max-width: none;
+  min-height: 240px;
+  padding: 18px 20px 28px;
+  outline: none;
+}
+.tf-ed-content h2 {
+  margin-top: 1.2em;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(26px, 2.6vw, 36px);
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--ink-cream);
+}
+.tf-ed-content h3 {
+  margin: 1.2em 0 0;
+  font-size: var(--t-h3);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--ink-cream);
+}
+.tf-ed-content h4 {
+  margin: 1em 0 0;
+  font-size: var(--t-body);
+  font-weight: 700;
+  color: var(--ink-cream);
+}
+.tf-ed-content > :first-child {
+  margin-top: 0;
+}
+.tf-ed-content p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  color: var(--grey-3);
+  pointer-events: none;
+}
+.ProseMirror {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.ProseMirror-selectednode {
+  outline: 2px solid var(--gold);
+}
+.ProseMirror .ProseMirror-gapcursor:after {
+  border-top: 1px solid var(--ink-cream);
+}
+.tf-ed-media {
+  margin: 1.2em 0;
+  border: 1px solid var(--stroke);
+  background: var(--panel);
+}
+.tf-ed-media[data-selected='true'] {
+  outline: 2px solid var(--gold);
+}
+.tf-ed-media img,
+.tf-ed-media video {
+  display: block;
+  max-width: 100%;
+  max-height: 520px;
+  margin: 0 auto;
+}
+.tf-ed-media-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+}
+.tf-ed-media-fields .tf-field {
+  flex: 1 1 200px;
+  min-height: 34px;
+  font-size: 13px;
+}
+.tf-block {
+  border: 1px solid var(--stroke);
+  background: var(--panel);
+}
+.tf-block-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--stroke);
+}
+.tf-block-body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.tf-slide-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+}
+.tf-slide {
+  position: relative;
+  border: 1px solid var(--stroke);
+  background: var(--bg);
+}
+.tf-slide img,
+.tf-slide video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+}
+.tf-slide-tools {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px;
+}
+.tf-slide-tools button {
+  background: transparent;
+  border: 0;
+  color: var(--ink-cream);
+  cursor: pointer;
+  padding: 4px 6px;
+  font-size: 13px;
+}
+.tf-slide-tools button:hover {
+  color: var(--gold-light);
+}
+.tf-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--stroke);
+  background: var(--bg);
+  color: var(--grey-1);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.tf-chip[aria-pressed='true'] {
+  border-color: var(--gold);
+  color: var(--ink-cream);
+  background: var(--panel-hi);
 }

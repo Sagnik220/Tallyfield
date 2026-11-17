@@ -5,6 +5,7 @@ import type { PostInput, PostStatus, PostUpdate } from '@/domain/post'
 import { slugify } from '@/domain/slug'
 import * as posts from '@/data/posts.repo'
 import type { PostRow } from '@/data/types'
+import { mediaIdsInBody } from '@/data/public.repo'
 
 type Ctx = ActionContext<Db>
 
@@ -51,6 +52,12 @@ export async function updatePost({ db }: Ctx, input: PostUpdate): Promise<PostRo
   }
   const post = await posts.updatePost(db, id, values)
   if (tagIds !== undefined) await posts.setPostTags(db, id, tagIds)
+  // Keep the post's media links in step with what the body and cover use; this is what lets visitors see them.
+  if (values.body !== undefined || values.cover_media_id !== undefined) {
+    const ids = mediaIdsInBody(post.body)
+    if (post.cover_media_id && !ids.includes(post.cover_media_id)) ids.unshift(post.cover_media_id)
+    await posts.setPostMedia(db, id, ids)
+  }
   return post
 }
 
