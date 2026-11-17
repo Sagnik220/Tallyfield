@@ -7,6 +7,6 @@ let registry: ImporterRegistry | undefined
 
 /** Every source the site can import from. Add new importers here. */
 export function importers(): ImporterRegistry {
-  registry ??= new ImporterRegistry().register(createInstagramImporter({ apiVersion: serverEnv().INSTAGRAM_API_VERSION }))
+  registry ??= new ImporterRegistry().register(createInstagramImporter({ apiVersion: serverEnv().INSTAGRAM_API_VERSION, accountId: serverEnv().INSTAGRAM_ACCOUNT_ID }))
   return registry
 }

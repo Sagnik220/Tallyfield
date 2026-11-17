@@ -103,3 +103,15 @@ describe('safe downloads', () => {
     await expect(safeDownload(link, respond(new Response(new Uint8Array(11), { headers: { 'content-type': 'image/jpeg' } })))).rejects.toBeInstanceOf(AppError)
   })
 })
+
+describe('instagram media list address', () => {
+  it('uses graph.instagram.com/me for Instagram-issued tokens', async () => {
+    const { mediaListUrl } = await import('@/integrations/importers/instagram/client')
+    expect(mediaListUrl('IGAAtoken', { apiVersion: 'v25.0' }).href).toBe('https://graph.instagram.com/v25.0/me/media')
+  })
+  it('uses graph.facebook.com/{account id} for Facebook-issued tokens', async () => {
+    const { mediaListUrl } = await import('@/integrations/importers/instagram/client')
+    expect(mediaListUrl('EAAtoken', { apiVersion: 'v25.0', accountId: '17841422107146767' }).href).toBe('https://graph.facebook.com/v25.0/17841422107146767/media')
+    expect(() => mediaListUrl('EAAtoken', { apiVersion: 'v25.0' })).toThrow(/INSTAGRAM_ACCOUNT_ID/)
+  })
+})

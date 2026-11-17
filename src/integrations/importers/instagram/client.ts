@@ -20,9 +20,24 @@ const FIELDS = 'id,permalink,caption,media_type,media_url,children{id,media_type
 
 export interface InstagramClientOptions {
   apiVersion: string
+  /**
+   * The Instagram account's numeric ID. Needed for Facebook-issued tokens (Meta's "Unified login" /
+   * system-user tokens, which start with "EAA"): those read from graph.facebook.com/{id}/media.
+   * Instagram-issued tokens read from graph.instagram.com/me/media and do not need it.
+   */
+  accountId?: string | undefined
   fetchImpl?: typeof fetch
   /** How far back to look: maxPages x 50 most recent posts. */
   maxPages?: number
+}
+
+/** Facebook-issued tokens start with "EAA"; Instagram-issued ones start with "IG". */
+export function mediaListUrl(accessToken: string, options: InstagramClientOptions): URL {
+  if (accessToken.startsWith('EAA')) {
+    if (!options.accountId) throw new AppError('upstream', 'Set INSTAGRAM_ACCOUNT_ID to use this kind of Instagram token.')
+    return new URL(`https://graph.facebook.com/${options.apiVersion}/${encodeURIComponent(options.accountId)}/media`)
+  }
+  return new URL(`https://graph.instagram.com/${options.apiVersion}/me/media`)
 }
 
 /**
@@ -33,7 +48,7 @@ export async function findOwnMediaByShortcode(accessToken: string, shortcode: st
   const doFetch = options.fetchImpl ?? fetch
   let after: string | undefined
   for (let i = 0; i < (options.maxPages ?? 6); i += 1) {
-    const url = new URL(`https://graph.instagram.com/${options.apiVersion}/me/media`)
+    const url = mediaListUrl(accessToken, options)
     url.searchParams.set('fields', FIELDS)
     url.searchParams.set('limit', '50')
     if (after) url.searchParams.set('after', after)
