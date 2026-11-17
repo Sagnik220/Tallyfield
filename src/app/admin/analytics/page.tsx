@@ -2,12 +2,12 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { serverEnv } from '@/config/env.server'
 import { listDailyViews, type DailyRow } from '@/data/analytics.repo'
-import { listPostsForAdmin } from '@/data/posts.repo'
+import { listPostSummariesForAdmin, type PostSummary } from '@/data/posts.repo'
 import { getIntegrationToken } from '@/data/tokens.repo'
-import type { PostRow } from '@/data/types'
 import { instagramReport, type IgReport } from '@/integrations/instagram/insights'
 import { createSessionClient } from '@/lib/supabase/server'
 import { DailyChart, type DayPoint } from './daily-chart'
+import { IgPostsTable, type IgRow } from './ig-posts-table'
 
 export const metadata: Metadata = { title: 'Analytics' }
 
@@ -74,7 +74,7 @@ function group(rows: DailyRow[], key: (r: DailyRow) => string, limit = 8) {
 }
 
 async function loadInstagram(days: number): Promise<IgReport> {
-  const empty: IgReport = { ok: false, error: null, insightsAvailable: false, account: null, totals: null, posts: [] }
+  const empty: IgReport = { ok: false, error: null, insightsAvailable: false, account: null, totals: null, posts: [], fetchedAt: new Date().toISOString() }
   try {
     const env = serverEnv()
     if (!env.INSTAGRAM_ACCOUNT_ID) return { ...empty, error: 'INSTAGRAM_ACCOUNT_ID is not set.' }
@@ -93,7 +93,7 @@ export default async function AnalyticsPage({ searchParams }: Props) {
 
   const [rows, posts, ig] = await Promise.all([
     listDailyViews(db, dayKey(from)).catch(() => [] as DailyRow[]),
-    listPostsForAdmin(db).catch(() => [] as PostRow[]),
+    listPostSummariesForAdmin(db).catch(() => [] as PostSummary[]),
     loadInstagram(days),
   ])
 
@@ -128,6 +128,10 @@ export default async function AnalyticsPage({ searchParams }: Props) {
   const siteViewsByPost = new Map<string, number>()
   for (const r of rows) if (r.post_id) siteViewsByPost.set(r.post_id, (siteViewsByPost.get(r.post_id) ?? 0) + r.views)
   const postByPermalink = new Map(posts.filter((p) => p.source_url).map((p) => [normalise(p.source_url), p]))
+  const igRows: IgRow[] = ig.posts.map((p) => {
+    const sitePost = postByPermalink.get(normalise(p.permalink))
+    return { ...p, sitePostId: sitePost?.id ?? null, siteViews: sitePost ? (siteViewsByPost.get(sitePost.id) ?? 0) : null }
+  })
 
   return (
     <>
@@ -148,6 +152,11 @@ export default async function AnalyticsPage({ searchParams }: Props) {
       {/* ------------------------------------------------ Instagram */}
       <section style={{ display: 'grid', gap: 14 }}>
         <h2 style={{ margin: 0, fontSize: 16, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--ink-cream)' }}>Instagram {ig.account ? `· @${ig.account.username}` : ''}</h2>
+        {ig.ok ? (
+          <p className="tf-note" style={{ fontSize: 12, margin: 0 }}>
+            Instagram numbers refresh every 15 minutes; per-post reach, views, saves and shares every hour.
+          </p>
+        ) : null}
         {!ig.ok ? (
           <div className="tf-alert" role="alert">
             Instagram numbers are unavailable: {ig.error ?? 'unknown error'}
@@ -168,63 +177,7 @@ export default async function AnalyticsPage({ searchParams }: Props) {
                 (<code>instagram_manage_insights</code>). Ask Claude to walk you through adding it.
               </div>
             ) : null}
-            <div className="tf-panel" style={{ padding: 0, overflowX: 'auto' }}>
-              <table className="tf-table" style={{ minWidth: 900 }}>
-                <thead>
-                  <tr>
-                    <th>Post</th>
-                    <th>Date</th>
-                    <th style={{ textAlign: 'right' }}>Likes</th>
-                    <th style={{ textAlign: 'right' }}>Comments</th>
-                    <th style={{ textAlign: 'right' }}>Saves</th>
-                    <th style={{ textAlign: 'right' }}>Shares</th>
-                    <th style={{ textAlign: 'right' }}>Reach</th>
-                    <th style={{ textAlign: 'right' }}>Views</th>
-                    <th style={{ textAlign: 'right' }}>On the site</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ig.posts.map((p) => {
-                    const sitePost = postByPermalink.get(normalise(p.permalink))
-                    return (
-                      <tr key={p.id}>
-                        <td style={{ fontSize: 14 }}>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                            {p.thumbnail ? (
-                              // eslint-disable-next-line @next/next/no-img-element -- Instagram thumbnail
-                              <img src={p.thumbnail} alt="" width={40} height={50} style={{ objectFit: 'cover', flex: '0 0 auto' }} referrerPolicy="no-referrer" />
-                            ) : (
-                              <span style={{ width: 40, height: 50, background: 'var(--panel-hi)', flex: '0 0 auto' }} />
-                            )}
-                            <a href={p.permalink} target="_blank" rel="noreferrer" style={{ color: 'var(--ink-cream)', textDecoration: 'none', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', maxWidth: 320 }}>
-                              {p.caption || '(no caption)'}
-                            </a>
-                          </span>
-                        </td>
-                        <td style={{ fontSize: 13, whiteSpace: 'nowrap' }}>{new Date(p.timestamp).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</td>
-                        <td style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{fmt(p.likes)}</td>
-                        <td style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{fmt(p.comments)}</td>
-                        <td style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{fmt(p.saves)}</td>
-                        <td style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{fmt(p.shares)}</td>
-                        <td style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{fmt(p.reach)}</td>
-                        <td style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{fmt(p.views)}</td>
-                        <td style={{ textAlign: 'right', fontSize: 13, whiteSpace: 'nowrap' }}>
-                          {sitePost ? (
-                            <Link href={`/admin/posts/${sitePost.id}`} style={{ color: 'var(--gold-light)' }}>
-                              {fmt(siteViewsByPost.get(sitePost.id) ?? 0)} views
-                            </Link>
-                          ) : (
-                            <Link href={`/admin/import`} style={{ color: 'var(--grey-2)' }}>
-                              Import
-                            </Link>
-                          )}
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
+            <IgPostsTable rows={igRows} insights={ig.insightsAvailable} siteDays={days} />
           </>
         )}
       </section>

@@ -11,13 +11,14 @@ interface Props {
   categories: { id: string; name: string }[]
   /** When set, the screen opens this existing post for editing instead of importing a new one. */
   initial: DraftView | null
+  prefill?: string
 }
 
 const errorText = <T,>(r: ActionResult<T>) => (r.ok ? '' : r.error.message)
 
-export function ImportFlow({ categories, initial }: Props) {
+export function ImportFlow({ categories, initial, prefill = '' }: Props) {
   const postId = initial?.id ?? null
-  const [link, setLink] = useState('')
+  const [link, setLink] = useState(prefill)
   const [categoryId, setCategoryId] = useState(initial?.categoryId ?? categories[0]?.id ?? '')
   const [draft, setDraft] = useState<DraftView | null>(initial)
   const [title, setTitle] = useState(initial?.title ?? '')

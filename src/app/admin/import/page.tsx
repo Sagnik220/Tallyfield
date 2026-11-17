@@ -7,10 +7,12 @@ import { ImportFlow } from './import-flow'
 
 export const metadata: Metadata = { title: 'Import from Instagram' }
 
-type Props = { searchParams: Promise<{ post?: string }> }
+type Props = { searchParams: Promise<{ post?: string; url?: string }> }
 
 export default async function ImportPage({ searchParams }: Props) {
-  const { post } = await searchParams
+  const { post, url } = await searchParams
+  // Pre-filled from the analytics table's "Import" link; only Instagram post links are accepted.
+  const prefill = typeof url === 'string' && /^https:\/\/(www\.)?instagram\.com\/(p|reel|reels)\/[A-Za-z0-9_-]+\/?$/.test(url) ? url : ''
   const categories = await listCategories(await createSessionClient())
   const editing = typeof post === 'string' && /^[0-9a-f-]{36}$/i.test(post) ? post : null
   const loaded = editing ? await getDraftAction({ id: editing }) : null
@@ -40,7 +42,7 @@ export default async function ImportPage({ searchParams }: Props) {
             : 'Paste the link to one of your posts. The slides and caption come across, and you choose how it appears on the site.'}
         </p>
       </div>
-      <ImportFlow key={editing ?? 'new'} categories={categories.map((c) => ({ id: c.id, name: c.name }))} initial={initial} />
+      <ImportFlow prefill={prefill} key={editing ?? 'new'} categories={categories.map((c) => ({ id: c.id, name: c.name }))} initial={initial} />
     </>
   )
 }

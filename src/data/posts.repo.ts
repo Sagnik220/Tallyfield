@@ -31,6 +31,19 @@ export async function listPostsForAdmin(db: Db, status?: PostStatus): Promise<Po
   return (data ?? []) as unknown as PostRow[]
 }
 
+export type PostSummary = Omit<PostRow, 'body' | 'price_sources' | 'prices_checked_on' | 'author_id'>
+
+/** Every post without its body, for the admin list and analytics (light enough for a few thousand rows). */
+export async function listPostSummariesForAdmin(db: Db): Promise<PostSummary[]> {
+  const { data, error } = await db
+    .from('posts')
+    .select('id, slug, title, deck, kind, status, category_id, cover_media_id, source_url, published_at, created_at, updated_at')
+    .order('updated_at', { ascending: false })
+    .limit(5000)
+  if (error) raise(error, 'listPostSummariesForAdmin')
+  return (data ?? []) as unknown as PostSummary[]
+}
+
 export async function slugExists(db: Db, slug: string): Promise<boolean> {
   const { count, error } = await db.from('posts').select('id', { count: 'exact', head: true }).eq('slug', slug)
   if (error) raise(error, 'slugExists')

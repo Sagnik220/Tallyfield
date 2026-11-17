@@ -1,18 +1,37 @@
 import Link from 'next/link'
-import { listPostsForAdmin } from '@/data/posts.repo'
+import { listDailyViews } from '@/data/analytics.repo'
+import { listPostSummariesForAdmin } from '@/data/posts.repo'
 import { getMediaByIds, listCategories } from '@/data/public.repo'
 import { mediaUrl } from '@/lib/media-url'
 import { createSessionClient } from '@/lib/supabase/server'
-import { StatusButtons } from './status-buttons'
+import { PostsTable, type PostListRow } from './posts-table'
 
-const when = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' })
+function thirtyDaysAgo(): string {
+  return new Date(Date.now() - 29 * 86_400_000).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })
+}
 
 export default async function AdminPostsPage() {
   const db = await createSessionClient()
-  const [posts, categories] = await Promise.all([listPostsForAdmin(db), listCategories(db)])
+  const [posts, categories, daily] = await Promise.all([listPostSummariesForAdmin(db), listCategories(db), listDailyViews(db, thirtyDaysAgo()).catch(() => [])])
   const covers = await getMediaByIds(db, posts.map((p) => p.cover_media_id).filter((x): x is string => Boolean(x)))
   const categoryName = Object.fromEntries(categories.map((c) => [c.id, c.name]))
-
+  const views = new Map<string, number>()
+  for (const d of daily) if (d.post_id) views.set(d.post_id, (views.get(d.post_id) ?? 0) + d.views)
+  const rows: PostListRow[] = posts.map((p) => {
+    const cover = p.cover_media_id ? covers[p.cover_media_id] : undefined
+    return {
+      id: p.id,
+      title: p.title,
+      slug: p.slug,
+      status: p.status,
+      category: categoryName[p.category_id] ?? 'Uncategorised',
+      source: p.source_url ? 'instagram' : 'site',
+      cover: cover ? mediaUrl(cover.storage_path) : null,
+      updatedAt: p.updated_at,
+      publishedAt: p.published_at,
+      views: views.get(p.id) ?? 0,
+    }
+  })
   return (
     <>
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: 20 }}>
@@ -38,41 +57,7 @@ export default async function AdminPostsPage() {
           <p className="tf-note">Import a carousel from Instagram, or write a post for the site.</p>
         </section>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', borderTop: '2px solid var(--gold)' }}>
-          {posts.map((post) => {
-            const cover = post.cover_media_id ? covers[post.cover_media_id] : undefined
-            return (
-              <div key={post.id} style={{ display: 'grid', gridTemplateColumns: '56px minmax(0, 1fr) auto', gap: 16, alignItems: 'center', padding: '12px 0', borderBottom: '1px solid var(--rule-dark)' }}>
-                <span style={{ width: 56, height: 70, background: 'var(--panel)', overflow: 'hidden', display: 'block' }}>
-                  {cover ? (
-                    // eslint-disable-next-line @next/next/no-img-element -- small admin thumbnail, no optimisation needed
-                    <img src={mediaUrl(cover.storage_path)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                  ) : null}
-                </span>
-                <span style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
-                  <span style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
-                    <span className="tf-status" data-status={post.status}>
-                      {post.status}
-                    </span>
-                    <span className="tf-label">{categoryName[post.category_id] ?? ''}</span>
-                    <span className="tf-note" style={{ fontSize: 13 }}>
-                      Updated {when(post.updated_at)}
-                    </span>
-                  </span>
-                  <Link href={`/admin/posts/${post.id}`} style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink-cream)', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {post.title}
-                  </Link>
-                  {post.status === 'published' ? (
-                    <Link href={`/posts/${post.slug}`} className="tf-note" style={{ fontSize: 14, color: 'var(--gold-light)' }}>
-                      /posts/{post.slug} ↗
-                    </Link>
-                  ) : null}
-                </span>
-                <StatusButtons id={post.id} status={post.status} />
-              </div>
-            )
-          })}
-        </div>
+        <PostsTable rows={rows} categories={categories.map((c) => c.name)} />
       )}
     </>
   )

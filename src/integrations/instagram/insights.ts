@@ -21,6 +21,8 @@ export interface IgPost {
   permalink: string
   caption: string
   type: string
+  /** FEED, REELS or STORY. */
+  product: string
   timestamp: string
   thumbnail: string | null
   likes: number | null
@@ -47,6 +49,8 @@ export interface IgReport {
   account: IgAccount | null
   totals: IgTotals | null
   posts: IgPost[]
+  /** When these numbers were fetched from Instagram. */
+  fetchedAt: string
 }
 
 interface Options {
@@ -56,12 +60,16 @@ interface Options {
   days: number
 }
 
-const CACHE = { next: { revalidate: 900 } } as const
+/** Account and post list: 15 minutes. Per-post insights change slowly and cost one request each: 1 hour. */
+const LIST_SECONDS = 900
+const INSIGHT_SECONDS = 3600
+/** Most posts read from Instagram (a few years of daily posting). */
+const MAX_POSTS = 600
 
-async function graph<T>(o: Options, path: string, params: Record<string, string>): Promise<T> {
-  const url = new URL(`https://graph.facebook.com/${o.apiVersion}/${path}`)
+async function graph<T>(o: Options, path: string, params: Record<string, string>, revalidate = LIST_SECONDS): Promise<T> {
+  const url = new URL(path.startsWith('https://') ? path : `https://graph.facebook.com/${o.apiVersion}/${path}`)
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v)
-  const response = await fetch(url, { ...CACHE, headers: { Authorization: `Bearer ${o.token}` }, signal: AbortSignal.timeout(15_000) })
+  const response = await fetch(url, { next: { revalidate }, headers: { Authorization: `Bearer ${o.token}` }, signal: AbortSignal.timeout(15_000) })
   const json = (await response.json().catch(() => ({}))) as T & { error?: { message?: string; code?: number } }
   if (!response.ok || json.error) {
     const err = new Error(json.error?.message ?? `Instagram returned ${response.status}`) as Error & { code?: number }
@@ -81,7 +89,7 @@ function pick(data: InsightValue[] | undefined, name: string): number | null {
 }
 
 export async function instagramReport(o: Options): Promise<IgReport> {
-  const report: IgReport = { ok: false, error: null, insightsAvailable: false, account: null, totals: null, posts: [] }
+  const report: IgReport = { ok: false, error: null, insightsAvailable: false, account: null, totals: null, posts: [], fetchedAt: new Date().toISOString() }
   try {
     const a = await graph<{ username?: string; name?: string; followers_count?: number; follows_count?: number; media_count?: number; profile_picture_url?: string }>(o, o.accountId, {
       fields: 'username,name,followers_count,follows_count,media_count,profile_picture_url',
@@ -95,16 +103,24 @@ export async function instagramReport(o: Options): Promise<IgReport> {
       picture: a.profile_picture_url ?? null,
     }
 
-    const media = await graph<{ data: { id: string; permalink: string; caption?: string; media_type: string; timestamp: string; thumbnail_url?: string; media_url?: string; like_count?: number; comments_count?: number }[] }>(
-      o,
-      `${o.accountId}/media`,
-      { fields: 'id,permalink,caption,media_type,timestamp,thumbnail_url,media_url,like_count,comments_count', limit: '30' },
-    )
-    report.posts = media.data.map((m) => ({
+    type MediaPage = {
+      data: { id: string; permalink: string; caption?: string; media_type: string; media_product_type?: string; timestamp: string; thumbnail_url?: string; media_url?: string; like_count?: number; comments_count?: number }[]
+      paging?: { cursors?: { after?: string }; next?: string }
+    }
+    const fields = 'id,permalink,caption,media_type,media_product_type,timestamp,thumbnail_url,media_url,like_count,comments_count'
+    const all: MediaPage['data'] = []
+    let after: string | undefined
+    do {
+      const page: MediaPage = await graph<MediaPage>(o, `${o.accountId}/media`, { fields, limit: '100', ...(after ? { after } : {}) })
+      all.push(...page.data)
+      after = page.paging?.next ? page.paging.cursors?.after : undefined
+    } while (after && all.length < MAX_POSTS)
+    report.posts = all.map((m) => ({
       id: m.id,
       permalink: m.permalink,
-      caption: (m.caption ?? '').split('\n')[0]!.slice(0, 140),
+      caption: (m.caption ?? '').split('\n')[0]!.slice(0, 160),
       type: m.media_type,
+      product: m.media_product_type ?? 'FEED',
       timestamp: m.timestamp,
       thumbnail: m.thumbnail_url ?? (m.media_type === 'VIDEO' ? null : (m.media_url ?? null)),
       likes: m.like_count ?? null,
@@ -121,20 +137,25 @@ export async function instagramReport(o: Options): Promise<IgReport> {
     return report
   }
 
-  // Per-post insights (needs instagram_manage_insights). One request per post, newest 24 only.
-  const results = await Promise.allSettled(
-    report.posts.slice(0, 24).map((p) => graph<{ data: InsightValue[] }>(o, `${p.id}/insights`, { metric: 'reach,views,saved,shares,total_interactions' })),
-  )
-  results.forEach((r, i) => {
-    if (r.status !== 'fulfilled') return
-    const p = report.posts[i]!
-    p.reach = pick(r.value.data, 'reach')
-    p.views = pick(r.value.data, 'views')
-    p.saves = pick(r.value.data, 'saved')
-    p.shares = pick(r.value.data, 'shares')
-    p.interactions = pick(r.value.data, 'total_interactions')
-    report.insightsAvailable = true
-  })
+  // Per-post insights (needs instagram_manage_insights). One request per post, a few at a time, cached for an hour.
+  const queue = [...report.posts]
+  async function worker() {
+    for (let p = queue.shift(); p; p = queue.shift()) {
+      try {
+        const r = await graph<{ data: InsightValue[] }>(o, `${p.id}/insights`, { metric: 'reach,views,saved,shares,total_interactions' }, INSIGHT_SECONDS)
+        p.reach = pick(r.data, 'reach')
+        p.views = pick(r.data, 'views')
+        p.saves = pick(r.data, 'saved')
+        p.shares = pick(r.data, 'shares')
+        p.interactions = pick(r.data, 'total_interactions')
+        report.insightsAvailable = true
+      } catch (e) {
+        // No permission: stop asking for every remaining post.
+        if ((e as { code?: number }).code === 10 || (e as { code?: number }).code === 200) queue.length = 0
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: 8 }, worker))
 
   // Account totals for the chosen period (Meta allows up to 30 days per request).
   try {

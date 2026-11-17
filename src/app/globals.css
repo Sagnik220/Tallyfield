@@ -1352,3 +1352,182 @@ img {
   line-height: 1.4;
   color: #fff;
 }
+
+/* ------------------------------------------------------------------ admin table kit */
+.tf-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.tf-tk-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.tf-tk-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-end;
+}
+.tf-tk-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  font-size: 13px;
+  color: var(--grey-2);
+}
+.tf-tk-meta > :last-child:not(:first-child) {
+  margin-left: auto;
+}
+.tf-tk-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 260px;
+  min-width: 200px;
+  color: var(--grey-2);
+}
+.tf-tk-search svg {
+  position: absolute;
+  left: 12px;
+  pointer-events: none;
+}
+.tf-tk-search input {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 36px 8px 36px;
+  background: var(--bg);
+  border: 1px solid var(--stroke);
+  color: var(--ink-cream);
+  font: inherit;
+  font-size: 14px;
+}
+.tf-tk-search input:focus {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+.tf-tk-search kbd {
+  position: absolute;
+  right: 10px;
+  padding: 0 6px;
+  border: 1px solid var(--stroke);
+  font: inherit;
+  font-size: 11px;
+  color: var(--grey-3);
+}
+.tf-tk-search input:focus ~ kbd,
+.tf-tk-search input:not(:placeholder-shown) ~ kbd {
+  display: none;
+}
+.tf-tk-select {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--grey-2);
+}
+.tf-tk-select select {
+  min-height: 40px;
+  padding: 0 30px 0 10px;
+  background: var(--bg);
+  border: 1px solid var(--stroke);
+  color: var(--ink-cream);
+  font: inherit;
+  font-size: 14px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.tf-tk-select select:focus {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+.tf-tk-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--gold-light);
+  font: inherit;
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.tf-tk-sort {
+  display: inline-flex;
+  width: 100%;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tf-tk-arrow {
+  color: var(--grey-3);
+  font-size: 12px;
+}
+.tf-tk-sort[data-active] .tf-tk-arrow {
+  color: var(--ink-cream);
+}
+.tf-tk-sort:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.tf-tk-pager {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+.tf-tk-pager .tf-chip:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.tf-tk-gap {
+  align-self: center;
+  color: var(--grey-3);
+  padding: 0 2px;
+}
+.tf-tk-table th {
+  position: sticky;
+  top: 0;
+  background: var(--panel);
+  z-index: 1;
+}
+.tf-tk-table td.num,
+.tf-tk-table th.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.tf-tk-table tfoot td {
+  border-top: 1px solid var(--gold);
+  color: var(--ink-cream);
+  font-weight: 700;
+  font-size: 13px;
+}
+.tf-tk-empty {
+  padding: 32px 12px;
+  text-align: center;
+  color: var(--grey-2);
+  font-size: 14px;
+}
+@media (max-width: 640px) {
+  .tf-tk-select {
+    flex: 1 1 140px;
+  }
+  .tf-tk-select select {
+    width: 100%;
+  }
+}
