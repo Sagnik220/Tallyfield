@@ -31,7 +31,7 @@ jobs:
           --health-cmd "pg_isready -U postgres"
           --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - run: bash scripts/db-test.sh
@@ -46,7 +46,7 @@ jobs:
     # Create this environment in GitHub and add a required reviewer: nothing reaches production without approval.
     environment: production
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - uses: actions/setup-node@v5
