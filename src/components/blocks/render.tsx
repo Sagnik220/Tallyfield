@@ -1,14 +1,14 @@
 import Image from 'next/image'
 import type { ReactNode } from 'react'
-import { blocks, type StoredBlock } from '@/blocks'
+import { blocks, markdownToRichDoc, type RichNode, type StoredBlock } from '@/blocks'
 import type { MediaRow } from '@/data/types'
 import { mediaUrl } from '@/lib/media-url'
 import { RichText } from './rich-text'
 
 /**
- * Turns a post body into the article layout from the design.
- * Each level-2 heading starts a new full-width section. A section that holds one image and some text
- * is laid out as two columns (text left, image right), like the designed article.
+ * Turns a post body into a magazine reading layout: one centred column for text (like Medium), images at
+ * text width, wide or full width, slides stacked downward, and wide blocks (tables, the verdict) breaking out.
+ * Caption-style Markdown (# headings, **bold**, - lists) in captions and plain text blocks is shown formatted.
  */
 
 type Media = Record<string, MediaRow>
@@ -24,64 +24,42 @@ function parse(block: StoredBlock): Block | null {
   return parsed?.success ? { id: block.id, type: block.type, data: parsed.data as Record<string, unknown> } : null
 }
 
-function Paragraphs({ text, className = 'tf-body' }: { text: string; className?: string }) {
-  return (
-    <>
-      {text
-        .split(/\n\s*\n/)
-        .map((p) => p.trim())
-        .filter(Boolean)
-        .map((p, i) => (
-          <p key={i} className={className} style={{ whiteSpace: 'pre-line', maxWidth: 820 }}>
-            {p}
-          </p>
-        ))}
-    </>
-  )
+/** Plain text with caption-style Markdown, shown with the same typography as rich text. */
+function Prose({ text, dropCap = false }: { text: string; dropCap?: boolean }) {
+  if (!text.trim()) return null
+  return <RichText doc={markdownToRichDoc(text) as { content: RichNode[] }} dropCap={dropCap} />
 }
 
-function Picture({ media, caption, tilt, priority = false }: { media: MediaRow | undefined; caption?: string; tilt?: boolean; priority?: boolean }) {
+function Picture({ media, caption, priority = false, size = 'column' }: { media: MediaRow | undefined; caption?: string; priority?: boolean; size?: 'column' | 'wide' | 'full' }) {
   if (!media) return null
-  const w = media.width ?? 1080
-  const h = media.height ?? 1350
   return (
-    <figure className="tf-reveal" style={{ margin: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-      <div className={tilt ? 'tf-stage' : undefined} style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-        <Image className={tilt ? 'tf-tilt' : undefined} src={mediaUrl(media.storage_path)} alt={media.alt} width={w} height={h} priority={priority} sizes="(max-width: 900px) 100vw, 600px" style={{ width: '100%', maxWidth: 600, height: 'auto' }} />
-      </div>
-      {caption ? <figcaption className="tf-label">{caption}</figcaption> : null}
+    <figure className="tf-figure" data-size={size}>
+      <Image
+        src={mediaUrl(media.storage_path)}
+        alt={media.alt}
+        width={media.width ?? 1080}
+        height={media.height ?? 1350}
+        priority={priority}
+        sizes={size === 'full' ? '100vw' : size === 'wide' ? '(max-width: 1080px) 100vw, 1040px' : '(max-width: 740px) 100vw, 700px'}
+        style={{ width: '100%', height: 'auto' }}
+      />
+      {caption ? <figcaption>{caption}</figcaption> : null}
     </figure>
   )
 }
 
-function Gallery({ data, media }: { data: Block['data']; media: Media }) {
+/** Imported slides, stacked downward in the reading column, followed by the caption. */
+function Gallery({ data, media, first, dropCap }: { data: Block['data']; media: Media; first: boolean; dropCap: boolean }) {
   const ids = (data.mediaIds as string[]).filter((id) => media[id])
-  const caption = String(data.caption ?? '')
-    .split('\n')
-    .filter((line) => !/^\s*(#\S+\s*)+$/.test(line)) // drop hashtag-only lines from imported captions
-    .join('\n')
-    .trim()
   return (
-    <section style={{ paddingTop: 16, paddingBottom: 'var(--sp-section)' }}>
-      <div className="tf-gallery" role="region" aria-label={`Slides, ${ids.length} images. Scroll sideways for more.`} tabIndex={0}>
-        {ids.map((id, i) => {
-          const m = media[id]!
-          return (
-            <figure key={id}>
-              <Image src={mediaUrl(m.storage_path)} alt={m.alt} width={m.width ?? 1080} height={m.height ?? 1350} priority={i === 0} sizes="(max-width: 700px) 86vw, 540px" style={{ width: '100%', height: 'auto', display: 'block', border: '1px solid var(--stroke)' }} />
-              <figcaption className="tf-note" style={{ paddingTop: 10 }}>
-                {String(i + 1).padStart(2, '0')} / {String(ids.length).padStart(2, '0')}
-              </figcaption>
-            </figure>
-          )
-        })}
+    <>
+      <div className="tf-slides">
+        {ids.map((id, i) => (
+          <Picture key={id} media={media[id]} priority={first && i === 0} />
+        ))}
       </div>
-      {caption ? (
-        <div className="tf-wrap" style={{ display: 'flex', flexDirection: 'column', gap: 18, paddingTop: 40 }}>
-          <Paragraphs text={caption} />
-        </div>
-      ) : null}
-    </section>
+      <Prose text={String(data.caption ?? '')} dropCap={dropCap} />
+    </>
   )
 }
 
@@ -158,7 +136,7 @@ function Verdict({ data, media }: { data: Block['data']; media: Media }) {
   const picture = data.mediaId ? media[data.mediaId as string] : undefined
   const price = typeof data.priceInr === 'number' ? ` · ${rupees(data.priceInr)}` : ''
   return (
-    <section id="verdict" style={{ background: 'var(--panel)', borderTop: '1px solid var(--stroke)', borderBottom: '1px solid var(--stroke)', padding: 'var(--sp-section) 0' }}>
+    <section id="verdict" className="tf-bleed" style={{ background: 'var(--panel)', borderTop: '1px solid var(--stroke)', borderBottom: '1px solid var(--stroke)', padding: 'var(--sp-section) 0' }}>
       <div className="tf-wrap" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         <div className="tf-eyebrow">{String(data.eyebrow)}</div>
         <h2 className="tf-display tf-reveal" style={{ fontSize: 'var(--t-h2)' }}>
@@ -207,85 +185,72 @@ function InstagramEmbed({ data }: { data: Block['data'] }) {
   )
 }
 
-/** Renders one block that lives inside a normal section. */
-function Inline({ block, media }: { block: Block; media: Media }): ReactNode {
+/** Renders one block in the reading column. */
+function Inline({ block, media, index, dropCap }: { block: Block; media: Media; index: number; dropCap: boolean }): ReactNode {
   const d = block.data
   switch (block.type) {
     case 'heading':
-      return d.level === 3 ? (
-        <h3 className="tf-reveal" style={{ margin: 0, fontSize: 'var(--t-h3)', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-cream)' }}>
-          {String(d.text)}
-        </h3>
-      ) : (
-        <h2 className="tf-display tf-h2 tf-reveal">{String(d.text)}</h2>
+      return (
+        <div className="tf-rich">
+          {d.level === 3 ? <h3 className="tf-rich-h3">{String(d.text)}</h3> : <h2 className="tf-display tf-rich-h2">{String(d.text)}</h2>}
+        </div>
       )
     case 'text':
-      return <Paragraphs text={String(d.text)} />
+      return <Prose text={String(d.text)} dropCap={dropCap} />
     case 'image':
-      return <Picture media={media[d.mediaId as string]} caption={String(d.caption ?? '')} tilt={Boolean(d.tilt)} />
+      return <Picture media={media[d.mediaId as string]} caption={String(d.caption ?? '')} priority={index === 0} />
+    case 'gallery':
+      return <Gallery data={d} media={media} first={index === 0} dropCap={dropCap} />
     case 'spec_table':
-      return <SpecTable data={d} />
+      return (
+        <div className="tf-wide">
+          <SpecTable data={d} />
+        </div>
+      )
     case 'price_table':
-      return <PriceTable data={d} />
+      return (
+        <div className="tf-wide">
+          <PriceTable data={d} />
+        </div>
+      )
+    case 'verdict':
+      return <Verdict data={d} media={media} />
     case 'instagram_embed':
       return <InstagramEmbed data={d} />
     case 'rich_text':
-      return <RichText doc={d.doc as { content: [] }} />
+      return <RichText doc={d.doc as { content: RichNode[] }} dropCap={dropCap} />
     default:
       return null
   }
 }
 
-/** Blocks that take the full width of the page instead of sitting in a section. */
-const FULL_WIDTH = new Set(['gallery', 'verdict'])
+/** Blocks whose text can open the article with a drop cap. */
+const PROSE = new Set(['text', 'rich_text', 'gallery'])
 
 export function ArticleBody({ body, media }: { body: StoredBlock[]; media: Media }) {
   const parsed = body.map(parse).filter((b): b is Block => b !== null)
-
-  // Group into runs: each full-width block on its own, everything else split into sections at level-2 headings.
-  const groups: { full?: Block; items: Block[] }[] = []
-  for (const block of parsed) {
-    if (FULL_WIDTH.has(block.type)) {
-      groups.push({ full: block, items: [] })
-      continue
-    }
-    const startsSection = block.type === 'heading' && block.data.level !== 3
-    const last = groups[groups.length - 1]
-    if (!last || last.full || startsSection) groups.push({ items: [block] })
-    else last.items.push(block)
-  }
-
+  const firstProse = parsed.findIndex((b) => PROSE.has(b.type))
   return (
-    <>
-      {groups.map((group, gi) => {
-        if (group.full?.type === 'gallery') return <Gallery key={group.full.id} data={group.full.data} media={media} />
-        if (group.full?.type === 'verdict') return <Verdict key={group.full.id} data={group.full.data} media={media} />
-        const images = group.items.filter((b) => b.type === 'image')
-        const rest = group.items.filter((b) => b.type !== 'image')
-        const split = images.length === 1 && rest.length > 0
-        return (
-          <section key={group.items[0]?.id ?? gi} className="tf-section">
-            {split ? (
-              <div className="tf-wrap tf-split">
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
-                  {rest.map((b) => (
-                    <Inline key={b.id} block={b} media={media} />
-                  ))}
-                </div>
-                <Inline block={images[0]!} media={media} />
-              </div>
-            ) : (
-              <div className="tf-wrap" style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
-                {group.items.map((b) => (
-                  <Inline key={b.id} block={b} media={media} />
-                ))}
-              </div>
-            )}
-          </section>
-        )
-      })}
-    </>
+    <div className="tf-read tf-article-body">
+      {parsed.map((b, i) => (
+        <Inline key={b.id} block={b} media={media} index={i} dropCap={i === firstProse} />
+      ))}
+    </div>
   )
+}
+
+/** Words in the body, for "6 min read". */
+export function readingMinutes(body: StoredBlock[]): number {
+  const words = body
+    .map((b) => {
+      const def = blocks.get(b.type)
+      const p = def?.schema.safeParse(b.data)
+      return p?.success ? def!.toPlainText(p.data as never) : ''
+    })
+    .join(' ')
+    .split(/\s+/)
+    .filter(Boolean).length
+  return Math.max(1, Math.round(words / 230))
 }
 
 /** The verdict block, if the post has one: used for the "jump to the verdict" card at the top. */

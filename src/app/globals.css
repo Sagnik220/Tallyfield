@@ -28,6 +28,7 @@
   --sp-section: clamp(56px, 7vw, 96px);
   --sp-top: clamp(32px, 5vw, 72px);
   --sans: var(--font-sans), Arimo, 'Helvetica Neue', Arial, sans-serif;
+  --serif: var(--font-serif), Georgia, 'Times New Roman', serif;
 }
 
 *,
@@ -469,82 +470,251 @@ img {
   scroll-snap-align: center;
 }
 
-/* ------------------------------------------------------------------ rich text (articles) */
-.tf-rich {
-  max-width: 820px;
-  font-size: var(--t-body);
-  line-height: 1.7;
+/* ------------------------------------------------------------------ article reading layout (Medium-style) */
+/* One centred column for text; images can sit at text width, wide, or full width. */
+.tf-read {
+  max-width: 748px;
+  margin: 0 auto;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+.tf-article-head {
+  padding-top: var(--sp-top);
+  padding-bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.tf-article-head h1 {
+  margin: 0;
+  line-height: 1.02;
+}
+.tf-article-deck {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: clamp(19px, 1.65vw, 23px);
+  line-height: 1.45;
   color: var(--grey-1);
-  overflow-wrap: anywhere;
 }
-.tf-rich > * + * {
-  margin-top: 1em;
+.tf-article-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 14px 0;
+  border-top: 1px solid var(--rule-dark);
+  border-bottom: 1px solid var(--rule-dark);
+  font-size: 14px;
+  color: var(--grey-2);
 }
-.tf-rich p {
+.tf-article-by {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-cream);
+}
+.tf-article-body {
+  display: flex;
+  flex-direction: column;
+  padding-top: 8px;
+  padding-bottom: 56px;
+}
+.tf-article-body > * + * {
+  margin-top: 44px;
+}
+.tf-article-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding-top: 28px;
+  border-top: 1px solid var(--rule-dark);
+}
+
+/* Body text */
+.tf-rich {
+  font-family: var(--serif);
+  font-size: clamp(18px, 1.35vw, 21px);
+  line-height: 1.72;
+  color: #e7dac7;
+  overflow-wrap: break-word;
+  font-optical-sizing: auto;
+}
+.tf-rich > * {
   margin: 0;
 }
+.tf-rich > * + * {
+  margin-top: 1.3em;
+}
+.tf-rich strong {
+  font-weight: 650;
+  color: var(--ink-cream);
+}
+.tf-rich a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--gold);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+.tf-rich a:hover {
+  color: var(--gold-light);
+}
 .tf-rich .tf-rich-h2 {
-  font-size: clamp(26px, 3vw, 42px);
-  margin-top: 1.4em;
+  font-size: clamp(28px, 3vw, 40px);
+  line-height: 1.04;
+  letter-spacing: 0.01em;
+  color: var(--ink-cream);
+}
+.tf-rich > .tf-rich-h2:not(:first-child) {
+  margin-top: 2.1em;
 }
 .tf-rich .tf-rich-h3 {
-  margin: 1.4em 0 0;
-  font-size: var(--t-h3);
+  font-family: var(--sans);
+  font-size: clamp(20px, 1.75vw, 25px);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
+  line-height: 1.28;
+  letter-spacing: -0.01em;
   color: var(--ink-cream);
 }
+.tf-rich > .tf-rich-h3:not(:first-child) {
+  margin-top: 1.9em;
+}
 .tf-rich .tf-rich-h4 {
-  margin: 1.2em 0 0;
-  font-size: var(--t-body);
+  font-family: var(--sans);
+  font-size: 13px;
   font-weight: 700;
-  color: var(--ink-cream);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold-light);
+}
+.tf-rich > .tf-rich-h4:not(:first-child) {
+  margin-top: 2em;
+}
+.tf-rich > :is(.tf-rich-h2, .tf-rich-h3, .tf-rich-h4) + * {
+  margin-top: 0.7em;
 }
 .tf-rich ul,
 .tf-rich ol {
-  margin: 0;
-  padding-left: 1.4em;
+  padding-left: 1.3em;
 }
 .tf-rich li + li {
-  margin-top: 0.35em;
+  margin-top: 0.5em;
+}
+.tf-rich li > * {
+  margin: 0;
 }
 .tf-rich li::marker {
   color: var(--gold);
 }
 .tf-rich blockquote {
-  margin: 1.4em 0;
-  padding: 0 0 0 22px;
-  border-left: 4px solid var(--gold);
-  font-size: var(--t-lead);
+  padding-left: 24px;
+  border-left: 3px solid var(--gold);
+  font-size: 1.2em;
+  font-style: italic;
+  line-height: 1.5;
   color: var(--ink-cream);
+}
+.tf-rich > blockquote {
+  margin: 1.9em 0;
+}
+.tf-rich blockquote > * {
+  margin: 0;
 }
 .tf-rich hr {
   border: 0;
-  height: 1px;
-  background: var(--rule-dark);
-  margin: 2em 0;
+  height: auto;
+  text-align: center;
+  color: var(--gold);
+  overflow: visible;
 }
-.tf-rich a {
+.tf-rich > hr {
+  margin: 2.2em 0;
+}
+.tf-rich hr::before {
+  content: '· · ·';
+  font-family: var(--sans);
+  font-size: 22px;
+  letter-spacing: 0.6em;
+}
+.tf-dropcap::first-letter {
+  float: left;
+  margin: 0.06em 0.1em 0 0;
+  font-family: var(--display);
+  font-size: 4.4em;
+  line-height: 0.82;
   color: var(--gold-light);
-  text-underline-offset: 3px;
 }
-.tf-rich-media {
-  margin: 1.6em 0;
+.tf-rich .tf-standfirst {
+  font-size: 1.16em;
+  line-height: 1.55;
+  color: var(--grey-1);
 }
-.tf-rich-media video {
+
+/* Pictures: text width by default; "wide" and "full" break out of the column. */
+.tf-figure {
+  margin: 0;
+}
+.tf-rich > .tf-figure {
+  margin: 2.2em 0;
+}
+.tf-figure img,
+.tf-figure video {
   display: block;
   width: 100%;
-  max-height: 80vh;
+  height: auto;
+}
+.tf-figure video {
+  max-height: 85vh;
   background: #000;
 }
-.tf-rich-media figcaption {
-  margin-top: 10px;
-  font-size: var(--t-label);
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--gold-light);
+.tf-figure[data-size='wide'],
+.tf-wide {
+  position: relative;
+  left: 50%;
+  translate: -50% 0;
+  width: min(1040px, calc(100vw - 48px));
+}
+.tf-figure[data-size='full'],
+.tf-bleed {
+  position: relative;
+  left: 50%;
+  translate: -50% 0;
+  width: 100vw;
+}
+.tf-figure figcaption {
+  margin-top: 12px;
+  padding: 0 24px;
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: center;
+  color: var(--grey-2);
+}
+.tf-slides {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+@media (max-width: 640px) {
+  .tf-read {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .tf-article-body > * + * {
+    margin-top: 32px;
+  }
+  .tf-dropcap::first-letter {
+    font-size: 3.7em;
+  }
+  .tf-figure[data-size='wide'],
+  .tf-wide {
+    width: calc(100vw - 40px);
+  }
+  .tf-slides {
+    gap: 18px;
+  }
 }
 .tf-rich-embed {
   margin: 1.6em 0;
@@ -1044,32 +1214,38 @@ img {
   cursor: pointer;
 }
 .tf-ed-content {
-  max-width: none;
+  max-width: 748px;
   min-height: 240px;
-  padding: 18px 20px 28px;
+  margin: 0 auto;
+  padding: 22px 24px 32px;
   outline: none;
 }
+/* The editor previews the article's typography, so what you write looks like what readers see. */
 .tf-ed-content h2 {
-  margin-top: 1.2em;
+  margin-top: 1.8em;
   font-family: var(--display);
   font-weight: 400;
-  font-size: clamp(26px, 2.6vw, 36px);
-  line-height: 1;
+  font-size: clamp(28px, 3vw, 40px);
+  line-height: 1.04;
   text-transform: uppercase;
   color: var(--ink-cream);
 }
 .tf-ed-content h3 {
-  margin: 1.2em 0 0;
-  font-size: var(--t-h3);
+  margin: 1.6em 0 0;
+  font-family: var(--sans);
+  font-size: clamp(20px, 1.75vw, 25px);
   font-weight: 700;
-  text-transform: uppercase;
+  line-height: 1.28;
   color: var(--ink-cream);
 }
 .tf-ed-content h4 {
-  margin: 1em 0 0;
-  font-size: var(--t-body);
+  margin: 1.6em 0 0;
+  font-family: var(--sans);
+  font-size: 13px;
   font-weight: 700;
-  color: var(--ink-cream);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold-light);
 }
 .tf-ed-content > :first-child {
   margin-top: 0;
@@ -1102,11 +1278,65 @@ img {
 .tf-ed-media img,
 .tf-ed-media video {
   display: block;
-  max-width: 100%;
-  max-height: 520px;
+  width: 100%;
+  max-height: 560px;
+  object-fit: contain;
   margin: 0 auto;
 }
+/* Preview of the chosen size: text width, wide, full width. */
+.tf-ed-media[data-size='column'] img,
+.tf-ed-media[data-size='column'] video {
+  max-width: 70%;
+}
+.tf-ed-media[data-size='wide'] img,
+.tf-ed-media[data-size='wide'] video {
+  max-width: 88%;
+}
+.tf-ed-media-handle {
+  padding: 6px 10px;
+  font-family: var(--sans);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--grey-2);
+  border-bottom: 1px solid var(--stroke);
+  cursor: grab;
+  user-select: none;
+}
+.tf-ed-media-handle:active {
+  cursor: grabbing;
+}
+.tf-ed-media-size {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--grey-2);
+}
+.tf-ed-media-size select {
+  min-height: 34px;
+  padding: 0 8px;
+  background: var(--bg);
+  border: 1px solid var(--stroke);
+  color: var(--ink-cream);
+  font: inherit;
+  font-size: 13px;
+}
+.tf-ed-unpack {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  margin-top: 6px;
+  padding: 14px 16px;
+  border: 1px dashed var(--gold);
+  background: var(--panel-hi);
+  font-size: 14px;
+  color: var(--ink-cream);
+}
 .tf-ed-media-fields {
+  font-family: var(--sans);
   display: flex;
   flex-wrap: wrap;
   align-items: center;

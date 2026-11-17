@@ -19,6 +19,16 @@ const sans = localFont({
   display: 'swap',
 })
 
+// Reading face for article text (variable weight, with italics).
+const serif = localFont({
+  src: [
+    { path: '../../node_modules/@fontsource-variable/source-serif-4/files/source-serif-4-latin-wght-normal.woff2', weight: '200 900', style: 'normal' },
+    { path: '../../node_modules/@fontsource-variable/source-serif-4/files/source-serif-4-latin-wght-italic.woff2', weight: '200 900', style: 'italic' },
+  ],
+  variable: '--font-serif',
+  display: 'swap',
+})
+
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
   title: { default: `${site.name} · ${site.tagline}`, template: `%s · ${site.name}` },
@@ -30,7 +40,7 @@ export const viewport: Viewport = { themeColor: '#050505', colorScheme: 'dark' }
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${display.variable} ${sans.variable}`}>
+    <html lang="en" className={`${display.variable} ${sans.variable} ${serif.variable}`}>
       <body>
         {children}
         <Tracker />

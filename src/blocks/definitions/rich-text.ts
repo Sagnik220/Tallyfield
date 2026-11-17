@@ -16,6 +16,8 @@ export const COLORS = ['#F6E7D4', '#CFC3B0', '#A39A8A', '#C8A86B', '#B0925E', '#
 export const HIGHLIGHTS = ['#3A2F1A', '#1E3A33', '#3D2424', '#2A2A2A'] as const
 const ALIGN = z.enum(['left', 'center', 'right', 'justify'])
 const STORAGE_PATH = /^(upload|instagram)\/[0-9a-f-]{36}\.(jpg|png|webp|avif|gif|mp4|webm|mov)$/
+/** How wide an image sits in an article: the text column, wider than the text, or the full screen width. */
+export const MEDIA_SIZES = ['column', 'wide', 'full'] as const
 export const YOUTUBE_ID = /^[A-Za-z0-9_-]{11}$/
 
 const mark = z.discriminatedUnion('type', [
@@ -67,6 +69,7 @@ const media = z.object({
       caption: z.string().max(300).default(''),
       width: z.number().int().positive().max(20_000).nullish(),
       height: z.number().int().positive().max(20_000).nullish(),
+      size: z.enum(MEDIA_SIZES).nullish(),
     })
     .loose(),
 })

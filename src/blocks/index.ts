@@ -25,7 +25,8 @@ export const blocks = new BlockRegistry()
 export const bodySchema = blocks.bodySchema()
 export const emptyBody = () => ({ version: 1 as const, blocks: [] })
 
-export { COLORS, FONT_FAMILIES, FONT_SIZES, HIGHLIGHTS, YOUTUBE_ID } from './definitions/rich-text'
+export { COLORS, FONT_FAMILIES, FONT_SIZES, HIGHLIGHTS, MEDIA_SIZES, YOUTUBE_ID, richDoc } from './definitions/rich-text'
+export { looksLikeMarkdown, markdownToRichDoc } from './markdown'
 export type { RichMark, RichNode } from './definitions/rich-text'
 
 export { BlockRegistry } from './registry'

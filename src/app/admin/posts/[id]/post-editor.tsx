@@ -4,7 +4,7 @@ import type { JSONContent } from '@tiptap/core'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
-import { CAPTION_MAX, sanitizeRichDoc, type StoredBlock } from '@/blocks'
+import { CAPTION_MAX, markdownToRichDoc, sanitizeRichDoc, type StoredBlock } from '@/blocks'
 import { CharCount } from '@/components/admin/char-count'
 import { RichEditor } from '@/components/editor/rich-editor'
 import { slugify } from '@/domain/slug'
@@ -17,6 +17,8 @@ export interface EditorMedia {
   path: string
   kind: 'image' | 'video'
   alt: string
+  width?: number | null
+  height?: number | null
 }
 
 interface EditorPost {
@@ -46,20 +48,36 @@ interface Props {
 type Data = Record<string, unknown>
 const uuid = () => crypto.randomUUID()
 
+/** Caption text (with any # headings, **bold**, - lists) as a formatted rich text document. */
 function captionToDoc(caption: string): JSONContent {
-  const paragraphs = caption
-    .split(/\n\s*\n/)
-    .map((p) => p.trim())
-    .filter(Boolean)
-  return {
-    type: 'doc',
-    content: paragraphs.length
-      ? paragraphs.map((p) => ({
-          type: 'paragraph',
-          content: p.split('\n').flatMap((line, i) => (i === 0 ? [{ type: 'text', text: line }] : [{ type: 'hardBreak' }, { type: 'text', text: line }])).filter((n) => n.type !== 'text' || n.text),
-        }))
-      : [{ type: 'paragraph' }],
-  }
+  return markdownToRichDoc(caption) as JSONContent
+}
+
+/**
+ * Turns a slide gallery into one rich text section where every slide is a picture you can drag anywhere.
+ * Starting layout: first slide on top, the caption's text after it, and the other slides spread one per section
+ * (after each heading's first paragraph); any left over go at the end.
+ */
+function galleryToDoc(mediaIds: string[], caption: string, media: Record<string, EditorMedia>): JSONContent {
+  const pics = mediaIds
+    .filter((id) => media[id])
+    .map((id) => {
+      const m = media[id]!
+      return { type: 'media', attrs: { mediaId: id, path: m.path, kind: m.kind, alt: m.alt, caption: '', width: m.width ?? null, height: m.height ?? null, size: 'column' } }
+    })
+  const text = (captionToDoc(caption).content ?? []).filter((n) => !(n.type === 'paragraph' && !n.content?.length))
+  const [first, ...rest] = pics
+  const out: JSONContent[] = first ? [first] : []
+  let pending = [...rest]
+  text.forEach((node, i) => {
+    out.push(node)
+    const prev = text[i - 1]
+    // Place a slide after the first paragraph that follows a heading.
+    if (pending.length && node.type === 'paragraph' && prev?.type === 'heading') out.push(pending.shift()!)
+  })
+  out.push(...pending)
+  pending = []
+  return { type: 'doc', content: out.length ? out : [{ type: 'paragraph' }] }
 }
 
 function Thumb({ m, alt }: { m: EditorMedia | undefined; alt?: string }) {
@@ -80,12 +98,14 @@ function GalleryEditor({
   onChange,
   onUploaded,
   onCaptionToText,
+  onUnpack,
 }: {
   data: Data
   media: Record<string, EditorMedia>
   onChange: (d: Data) => void
   onUploaded: (id: string, m: EditorMedia) => void
   onCaptionToText: () => void
+  onUnpack: () => void
 }) {
   const ids = (data.mediaIds as string[]) ?? []
   const fileInput = useRef<HTMLInputElement>(null)
@@ -165,11 +185,24 @@ function GalleryEditor({
       </label>
       <textarea id="gallery-caption" className="tf-field" rows={8} maxLength={CAPTION_MAX} value={String(data.caption ?? '')} onChange={(e) => onChange({ ...data, caption: e.target.value })} style={{ resize: 'vertical' }} aria-describedby="gallery-caption-count" />
       <CharCount id="gallery-caption-count" length={String(data.caption ?? '').length} max={CAPTION_MAX} />
-      {String(data.caption ?? '').trim() ? (
-        <button type="button" className="tf-ghost tf-small" style={{ alignSelf: 'flex-start' }} onClick={onCaptionToText}>
-          Move caption into a rich text section ↓
-        </button>
-      ) : null}
+      <div className="tf-ed-unpack">
+        <div>
+          <strong>Want to place the pictures between paragraphs?</strong>
+          <p className="tf-note" style={{ margin: '4px 0 0', fontSize: 13 }}>
+            Unpack turns the slides and caption into one editable article: drag any picture anywhere, choose its size, and format the text. The caption’s # headings, **bold** and - lists become real formatting.
+          </p>
+        </div>
+        <span style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button type="button" className="tf-gold tf-small" onClick={onUnpack}>
+            Unpack slides into the article
+          </button>
+          {String(data.caption ?? '').trim() ? (
+            <button type="button" className="tf-ghost tf-small" onClick={onCaptionToText}>
+              Only move the caption ↓
+            </button>
+          ) : null}
+        </span>
+      </div>
     </>
   )
 }
@@ -291,6 +324,11 @@ export function PostEditor({ post, tagIds: initialTagIds, categories, tags: init
       ;[next[i], next[j]] = [next[j]!, next[i]!]
       return next
     })
+    touch()
+  }
+  /** Swap a section for one of another type in the same place (new id, so its editor starts fresh). */
+  function replaceBlock(id: string, type: string, data: Data) {
+    setBlocks((bs) => bs.map((b) => (b.id === id ? { id: uuid(), type, data } : b)))
     touch()
   }
   function removeBlock(id: string) {
@@ -679,6 +717,11 @@ export function PostEditor({ post, tagIds: initialTagIds, categories, tags: init
                     const caption = String((b.data as Data).caption ?? '')
                     updateBlock(b.id, { ...(b.data as Data), caption: '' })
                     addBlock('rich_text', i, { doc: captionToDoc(caption) })
+                  }}
+                  onUnpack={() => {
+                    if (!window.confirm('Turn these slides and the caption into one editable article section? You can undo by not saving.')) return
+                    const d = b.data as Data
+                    replaceBlock(b.id, 'rich_text', { doc: galleryToDoc((d.mediaIds as string[]) ?? [], String(d.caption ?? ''), media) })
                   }}
                 />
               ) : b.type === 'verdict' ? (

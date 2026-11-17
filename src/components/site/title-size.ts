@@ -3,7 +3,7 @@
  * The design's big poster type works for short headlines ("Which Santos should you buy?");
  * a full sentence at that size fills the screen, so longer headlines step down.
  */
-type Tier = 'hero' | 'article' | 'card' | 'row' | 'tile'
+type Tier = 'hero' | 'article' | 'read' | 'card' | 'row' | 'tile'
 
 const STEPS: Record<Tier, [number, string][]> = {
   // [max characters, font-size]. Minimums are phone sizes, maximums are large-monitor sizes.
@@ -16,6 +16,12 @@ const STEPS: Record<Tier, [number, string][]> = {
     [28, 'clamp(38px, 5.6vw, 84px)'],
     [55, 'clamp(30px, 4vw, 60px)'],
     [Infinity, 'clamp(25px, 2.9vw, 44px)'],
+  ],
+  // Article headline inside the ~700px reading column.
+  read: [
+    [28, 'clamp(40px, 5.4vw, 68px)'],
+    [55, 'clamp(32px, 4.3vw, 56px)'],
+    [Infinity, 'clamp(27px, 3.4vw, 44px)'],
   ],
   card: [
     [28, 'clamp(26px, 2.6vw, 34px)'],

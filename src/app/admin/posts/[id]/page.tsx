@@ -26,7 +26,7 @@ export default async function EditPostPage({ params }: Props) {
   if (post.cover_media_id) ids.push(post.cover_media_id)
   const [categories, tags, tagIds, mediaRows] = await Promise.all([listCategories(db), listAllTags(db), getPostTagIds(db, id), getMediaByIds(db, ids)])
   const media: Record<string, EditorMedia> = {}
-  for (const m of Object.values(mediaRows)) media[m.id] = { path: m.storage_path, kind: m.mime_type.startsWith('video/') ? 'video' : 'image', alt: m.alt }
+  for (const m of Object.values(mediaRows)) media[m.id] = { path: m.storage_path, kind: m.mime_type.startsWith('video/') ? 'video' : 'image', alt: m.alt, width: m.width, height: m.height }
 
   return (
     <>

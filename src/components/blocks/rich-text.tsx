@@ -91,8 +91,9 @@ function Media({ attrs }: { attrs: Record<string, unknown> }) {
   const caption = String(attrs.caption ?? '')
   const alt = String(attrs.alt ?? '')
   const isGif = String(attrs.path).endsWith('.gif')
+  const size = attrs.size === 'wide' || attrs.size === 'full' ? attrs.size : 'column'
   return (
-    <figure className="tf-rich-media">
+    <figure className="tf-figure" data-size={size}>
       {attrs.kind === 'video' ? (
         <video src={src} controls playsInline preload="metadata" aria-label={alt || caption || 'Video'} />
       ) : (
@@ -101,7 +102,7 @@ function Media({ attrs }: { attrs: Record<string, unknown> }) {
           alt={alt}
           width={Number(attrs.width) || 1200}
           height={Number(attrs.height) || 900}
-          sizes="(max-width: 860px) 100vw, 820px"
+          sizes={size === 'full' ? '100vw' : size === 'wide' ? '(max-width: 1080px) 100vw, 1040px' : '(max-width: 740px) 100vw, 700px'}
           unoptimized={isGif}
           style={{ width: '100%', height: 'auto' }}
         />
@@ -132,13 +133,13 @@ function Embed({ attrs }: { attrs: { provider: string; id: string } }) {
   )
 }
 
-function block(n: RichNode, key: string): ReactNode {
+function block(n: RichNode, key: string, dropCap = false, standfirst = false): ReactNode {
   const node = n as { type: string; attrs?: Record<string, unknown>; content?: RichNode[] }
   switch (node.type) {
     case 'paragraph': {
       const children = inline(node.content, key)
       return (
-        <p key={key} style={align(node.attrs)}>
+        <p key={key} className={standfirst ? 'tf-standfirst' : dropCap ? 'tf-dropcap' : undefined} style={align(node.attrs)}>
           {children.length ? children : <br />}
         </p>
       )
@@ -183,6 +184,25 @@ function block(n: RichNode, key: string): ReactNode {
   }
 }
 
-export function RichText({ doc }: { doc: { content: RichNode[] } }) {
-  return <div className="tf-rich">{doc.content.map((n, i) => block(n, String(i)))}</div>
+function textOf(n: RichNode): string {
+  const node = n as { text?: string; content?: RichNode[] }
+  return node.text ?? (node.content ?? []).map(textOf).join('')
+}
+
+/**
+ * dropCap: give the article's opening paragraph a large first letter, magazine style.
+ * It goes on the first real paragraph (a sentence or more, starting with a letter) near the top.
+ */
+function allItalic(n: RichNode): boolean {
+  const parts = ((n as { content?: { type: string; text?: string; marks?: { type: string }[] }[] }).content ?? []).filter((c) => c.type === 'text' && c.text?.trim())
+  return parts.length > 0 && parts.every((c) => c.marks?.some((m) => m.type === 'italic'))
+}
+
+export function RichText({ doc, dropCap = false }: { doc: { content: RichNode[] }; dropCap?: boolean }) {
+  // An all-italic paragraph at the very top reads as a standfirst (the magazine intro line).
+  const standAt = dropCap ? doc.content.slice(0, 3).findIndex((n) => n.type === 'paragraph' && allItalic(n)) : -1
+  const capAt = dropCap
+    ? doc.content.findIndex((n, i) => i < 5 && i !== standAt && n.type === 'paragraph' && !allItalic(n) && textOf(n).length >= 80 && /^[\p{L}"“‘']/u.test(textOf(n)) && !/center|right/.test((n as { attrs?: { textAlign?: string } }).attrs?.textAlign ?? ''))
+    : -1
+  return <div className="tf-rich">{doc.content.map((n, i) => block(n, String(i), i === capAt, i === standAt))}</div>
 }
