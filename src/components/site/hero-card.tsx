@@ -57,12 +57,7 @@ export function HeroCard({ src, alt, badge, caption, maxTilt = 10 }: Props) {
             />
           </div>
           <div aria-hidden="true" style={{ position: 'absolute', inset: 18, border: '1px solid var(--gold)', opacity: 0.7, transform: 'translateZ(46px)' }} />
-          <div
-            className="tf-label"
-            style={{ position: 'absolute', top: 34, left: 34, padding: '10px 14px', background: 'rgba(6, 20, 18, 0.78)', letterSpacing: '0.16em', transform: 'translateZ(84px)' }}
-          >
-            {badge}
-          </div>
+          {badge ? <div className="tf-label tf-hero-badge">{badge}</div> : null}
           {caption ? (
             <div
               style={{

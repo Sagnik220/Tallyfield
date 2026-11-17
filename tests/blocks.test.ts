@@ -68,3 +68,37 @@ describe('block registry', () => {
     expect(() => registry.register({ ...registry.get('pull_quote')! })).toThrow()
   })
 })
+
+describe('rich text block', () => {
+  const uuid = '00000000-0000-4000-8000-000000000009'
+  const block = (doc: unknown) => ({ version: 1, blocks: [{ id: uuid, type: 'rich_text', data: { doc } }] })
+
+  it('accepts styled text, lists, media and embeds', () => {
+    const doc = {
+      type: 'doc',
+      content: [
+        { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Which Santos?' }] },
+        {
+          type: 'paragraph',
+          content: [
+            { type: 'text', text: 'Big ', marks: [{ type: 'textStyle', attrs: { fontSize: '28px', color: '#C8A86B' } }, { type: 'bold' }] },
+            { type: 'text', text: 'link', marks: [{ type: 'link', attrs: { href: 'https://www.cartier.com/' } }] },
+            { type: 'text', text: ' 😍' },
+          ],
+        },
+        { type: 'bulletList', content: [{ type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'One' }] }] }] },
+        { type: 'media', attrs: { mediaId: uuid, path: `upload/${uuid}.gif`, kind: 'image', alt: 'A GIF' } },
+        { type: 'embed', attrs: { provider: 'youtube', id: 'dQw4w9WgXcQ' } },
+      ],
+    }
+    expect(bodySchema.safeParse(block(doc)).success).toBe(true)
+  })
+
+  it('rejects javascript links, unknown nodes and off-palette styles', () => {
+    const bad = (content: unknown[]) => bodySchema.safeParse(block({ type: 'doc', content })).success
+    expect(bad([{ type: 'paragraph', content: [{ type: 'text', text: 'x', marks: [{ type: 'link', attrs: { href: 'javascript:alert(1)' } }] }] }])).toBe(false)
+    expect(bad([{ type: 'iframe', attrs: { src: 'https://evil.example' } }])).toBe(false)
+    expect(bad([{ type: 'paragraph', content: [{ type: 'text', text: 'x', marks: [{ type: 'textStyle', attrs: { fontSize: '200px' } }] }] }])).toBe(false)
+    expect(bad([{ type: 'media', attrs: { mediaId: uuid, path: '../../etc/passwd', kind: 'image' } }])).toBe(false)
+  })
+})

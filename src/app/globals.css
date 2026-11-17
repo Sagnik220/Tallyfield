@@ -146,6 +146,51 @@ img {
   min-height: 100vh;
 }
 
+/* Site header: logo, sections, Instagram. On phones the sections become one scrollable row. */
+.tf-header {
+  padding-top: clamp(16px, 3vw, 36px);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 40px;
+}
+.tf-header-logo {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  text-decoration: none;
+}
+.tf-header-nav {
+  display: flex;
+  gap: 8px 32px;
+}
+@media (max-width: 640px) {
+  .tf-header-nav {
+    order: 3;
+    width: 100%;
+    gap: 22px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    border-top: 1px solid var(--rule-dark);
+  }
+  .tf-header-nav::-webkit-scrollbar {
+    display: none;
+  }
+  .tf-header-nav .tf-nav {
+    white-space: nowrap;
+  }
+}
+.tf-hero-badge {
+  position: absolute;
+  top: 34px;
+  left: 34px;
+  padding: 10px 14px;
+  background: rgba(6, 20, 18, 0.78);
+  letter-spacing: 0.16em;
+  transform: translateZ(84px);
+}
+
 /* Homepage hero: text and cover side by side, the cover a little wider. */
 .tf-hero {
   padding-top: clamp(28px, 4vw, 48px);

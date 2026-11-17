@@ -53,14 +53,11 @@ export function Ornaments() {
 
 export function SiteHeader({ latestHref }: { latestHref?: string | null }) {
   return (
-    <header
-      className="tf-wrap"
-      style={{ paddingTop: 'clamp(18px, 3vw, 36px)', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '12px 40px' }}
-    >
-      <Link href="/" aria-label="Tallyfield home" style={{ display: 'flex', alignItems: 'center', minHeight: 44, textDecoration: 'none' }}>
+    <header className="tf-wrap tf-header">
+      <Link href="/" aria-label="Tallyfield home" className="tf-header-logo">
         <Wordmark size={26} />
       </Link>
-      <nav aria-label="Sections" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 36px' }}>
+      <nav aria-label="Sections" className="tf-header-nav">
         <Link className="tf-nav" href="/">
           Home
         </Link>
@@ -76,7 +73,7 @@ export function SiteHeader({ latestHref }: { latestHref?: string | null }) {
           About
         </Link>
       </nav>
-      <a className="tf-nav" href={site.instagram} style={{ color: 'var(--gold-light)' }}>
+      <a className="tf-nav tf-header-ig" href={site.instagram} style={{ color: 'var(--gold-light)' }}>
         Instagram
       </a>
     </header>

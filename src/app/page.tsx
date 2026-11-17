@@ -72,7 +72,7 @@ export default async function HomePage() {
           <HeroCard
             src={cover?.coverPath ? mediaUrl(cover.coverPath) : null}
             alt={cover?.coverAlt ?? ''}
-            badge={cover ? cover.categoryName : 'Coming soon'}
+            badge={cover ? '' : 'Coming soon'}
           />
         </section>
 
