@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { titleSize } from './title-size'
 
 export interface Issue {
   slug: string
@@ -81,7 +82,7 @@ export function IssuesCarousel({ issues }: { issues: Issue[] }) {
                   {pad(i + 1)} / {pad(count)}
                 </span>
               </span>
-              <span className="tf-display" style={{ display: 'block', padding: '18px 22px 20px', fontSize: 40 }}>
+              <span className="tf-display tf-clamp-3" style={{ padding: '18px 22px 20px', fontSize: titleSize(issue.title, 'card') }}>
                 {issue.title}
               </span>
               <span style={{ position: 'relative', display: 'block', flex: '1 1 0', minHeight: 0, background: 'var(--panel)' }}>

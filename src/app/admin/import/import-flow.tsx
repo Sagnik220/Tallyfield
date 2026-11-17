@@ -180,7 +180,12 @@ export function ImportFlow({ categories, initial }: Props) {
                 <label htmlFor="p-title" className="tf-label tf-field-label">
                   Headline
                 </label>
-                <input id="p-title" className="tf-field" type="text" maxLength={160} value={title} onChange={(e) => setTitle(e.target.value)} />
+                <input id="p-title" className="tf-field" type="text" maxLength={160} value={title} onChange={(e) => setTitle(e.target.value)} aria-describedby="p-title-hint" />
+                <p id="p-title-hint" className="tf-note" style={{ fontSize: 13, marginTop: 6 }}>
+                  {title.length > 50
+                    ? `${title.length} characters. Shorter reads better: try the headline from your first slide.`
+                    : 'Tip: use the short headline from your first slide.'}
+                </p>
               </div>
               <div>
                 <label htmlFor="p-slug" className="tf-label tf-field-label">

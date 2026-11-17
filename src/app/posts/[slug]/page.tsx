@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { cache } from 'react'
 import { ArticleBody, findVerdict, formatDate, formatRupees } from '@/components/blocks/render'
 import { Ornaments, SiteFooter, SiteHeader } from '@/components/site/chrome'
+import { titleSize } from '@/components/site/title-size'
 import { getPublicArticle, type PublicArticle } from '@/data/public.repo'
 import { SLUG_PATTERN } from '@/domain/slug'
 import { mediaUrl } from '@/lib/media-url'
@@ -70,7 +71,9 @@ export default async function PostPage({ params }: Props) {
               ) : null}
               {published ? ` · ${published}` : null}
             </div>
-            <h1 className="tf-display tf-h1">{post.title}</h1>
+            <h1 className="tf-display" style={{ fontSize: titleSize(post.title, 'article'), lineHeight: 0.98, maxWidth: 1100 }}>
+              {post.title}
+            </h1>
             <div className="tf-rule-line tf-rule-anim" />
             {post.deck ? (
               <p className="tf-lead" style={{ maxWidth: 720 }}>

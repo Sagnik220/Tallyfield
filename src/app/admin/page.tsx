@@ -37,8 +37,8 @@ export default async function AdminPostsPage() {
           {posts.map((post) => {
             const cover = post.cover_media_id ? covers[post.cover_media_id] : undefined
             return (
-              <div key={post.id} style={{ display: 'grid', gridTemplateColumns: '72px minmax(0, 1fr) auto', gap: 18, alignItems: 'center', padding: '16px 0', borderBottom: '1px solid var(--rule-dark)' }}>
-                <span style={{ width: 72, height: 90, background: 'var(--panel)', overflow: 'hidden', display: 'block' }}>
+              <div key={post.id} style={{ display: 'grid', gridTemplateColumns: '56px minmax(0, 1fr) auto', gap: 16, alignItems: 'center', padding: '12px 0', borderBottom: '1px solid var(--rule-dark)' }}>
+                <span style={{ width: 56, height: 70, background: 'var(--panel)', overflow: 'hidden', display: 'block' }}>
                   {cover ? (
                     // eslint-disable-next-line @next/next/no-img-element -- small admin thumbnail, no optimisation needed
                     <img src={mediaUrl(cover.storage_path)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
@@ -54,7 +54,7 @@ export default async function AdminPostsPage() {
                       Updated {when(post.updated_at)}
                     </span>
                   </span>
-                  <Link href={`/admin/import?post=${post.id}`} style={{ fontSize: 20, fontWeight: 700, color: 'var(--ink-cream)', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <Link href={`/admin/import?post=${post.id}`} style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink-cream)', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {post.title}
                   </Link>
                   {post.status === 'published' ? (

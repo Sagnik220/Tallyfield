@@ -5,6 +5,7 @@ import type { PostSummary } from '@/domain/post'
 import { HeroCard } from '@/components/site/hero-card'
 import { IssuesCarousel, type Issue } from '@/components/site/issues-carousel'
 import { Ornaments, SiteFooter, SiteHeader } from '@/components/site/chrome'
+import { titleSize } from '@/components/site/title-size'
 import { mediaUrl } from '@/lib/media-url'
 import { safely } from '@/lib/safely'
 import { createPublicClient } from '@/lib/supabase/public'
@@ -43,10 +44,10 @@ export default async function HomePage() {
       <SiteHeader latestHref={cover ? `/posts/${cover.slug}` : null} />
 
       <main>
-        <section id="top" className="tf-wrap" style={{ paddingTop: 72, paddingBottom: 120, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(480px, 100%), 1fr))', gap: '72px 64px', alignItems: 'center' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+        <section id="top" className="tf-wrap tf-hero">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             <div className="tf-eyebrow">{cover ? `Cover story · ${cover.categoryName}` : 'Watches · Reviews · Buying guides'}</div>
-            <h1 className="tf-display" style={{ fontSize: 'clamp(60px, 8vw, 120px)', lineHeight: 0.95 }}>
+            <h1 className="tf-display" style={{ fontSize: titleSize(cover?.title ?? 'Worth it, or not.', 'hero'), lineHeight: 0.98 }}>
               {cover ? cover.title : 'Worth it, or not.'}
             </h1>
             <div className="tf-rule-line tf-rule-anim" />
@@ -72,7 +73,6 @@ export default async function HomePage() {
             src={cover?.coverPath ? mediaUrl(cover.coverPath) : null}
             alt={cover?.coverAlt ?? ''}
             badge={cover ? cover.categoryName : 'Coming soon'}
-            {...(cover ? { caption: cover.title } : {})}
           />
         </section>
 
@@ -97,7 +97,7 @@ export default async function HomePage() {
                     <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--grey-2)' }}>{pad(i + 1)}</span>
                     <span style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                       <span className="tf-label">{post.categoryName}</span>
-                      <span style={{ fontFamily: 'var(--display)', fontSize: 'clamp(28px, 3.2vw, 44px)', lineHeight: 1.02, textTransform: 'uppercase' }}>{post.title}</span>
+                      <span style={{ fontFamily: 'var(--display)', fontSize: titleSize(post.title, 'row'), lineHeight: 1.04, textTransform: 'uppercase' }}>{post.title}</span>
                     </span>
                     <span className="tf-arrow" aria-hidden="true">
                       →

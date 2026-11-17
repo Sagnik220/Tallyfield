@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Ornaments, SiteFooter, SiteHeader } from '@/components/site/chrome'
+import { titleSize } from '@/components/site/title-size'
 import { listCategories, listTags, type CategoryRow, type TagRow } from '@/data/public.repo'
 import { searchPosts } from '@/data/search.repo'
 import { searchParamsSchema, type PostSummary } from '@/domain/post'
@@ -108,7 +109,7 @@ export default async function ArchivePage({ searchParams }: Props) {
                   </span>
                   <span style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '18px 20px 22px' }}>
                     <span className="tf-label">{post.categoryName}</span>
-                    <span style={{ fontFamily: 'var(--display)', fontSize: 30, lineHeight: 1.02, textTransform: 'uppercase' }}>{post.title}</span>
+                    <span className="tf-clamp-3" style={{ fontFamily: 'var(--display)', fontSize: titleSize(post.title, 'tile'), lineHeight: 1.04, textTransform: 'uppercase' }}>{post.title}</span>
                     {post.deck ? <span style={{ fontSize: 16, lineHeight: 1.45, color: 'var(--grey-1)' }}>{post.deck}</span> : null}
                   </span>
                 </Link>

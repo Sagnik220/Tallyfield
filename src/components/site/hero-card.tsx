@@ -24,7 +24,7 @@ export function HeroCard({ src, alt, badge, caption, maxTilt = 10 }: Props) {
 
   return (
     <div onMouseMove={onMove} onMouseLeave={() => setTilt({ rx: 0, ry: 0 })} style={{ perspective: 1400, display: 'flex', justifyContent: 'center', padding: '24px 0' }}>
-      <div className="tf-float" style={{ width: 'min(500px, 100%)', transformStyle: 'preserve-3d' }}>
+      <div className="tf-float" style={{ width: 'min(560px, 100%)', transformStyle: 'preserve-3d' }}>
         <div
           style={{
             position: 'relative',
@@ -37,7 +37,7 @@ export function HeroCard({ src, alt, badge, caption, maxTilt = 10 }: Props) {
           <div style={{ position: 'absolute', inset: 0, background: 'var(--panel)', border: '1px solid var(--stroke)', transform: 'translateZ(-90px) translate(34px, 34px)' }} />
           <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', background: 'var(--panel)', boxShadow: '0 60px 120px rgba(0, 0, 0, 0.75)' }}>
             {src ? (
-              <Image src={src} alt={alt} fill priority sizes="(max-width: 900px) 100vw, 500px" style={{ objectFit: 'cover' }} />
+              <Image src={src} alt={alt} fill priority sizes="(max-width: 900px) 100vw, 560px" style={{ objectFit: 'cover' }} />
             ) : (
               <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontFamily: 'var(--display)', fontSize: 64, color: 'var(--stroke)', textTransform: 'uppercase' }}>
                 Tallyfield
