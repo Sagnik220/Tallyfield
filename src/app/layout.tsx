@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import localFont from 'next/font/local'
 import type { ReactNode } from 'react'
 import { site } from '@/config/site'
+import { Tracker } from '@/components/site/tracker'
 import './globals.css'
 
 // Fonts ship with the site (from the @fontsource packages), so the build needs no network and visitors make no third-party font requests.
@@ -30,7 +31,10 @@ export const viewport: Viewport = { themeColor: '#050505', colorScheme: 'dark' }
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${display.variable} ${sans.variable}`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <Tracker />
+      </body>
     </html>
   )
 }
