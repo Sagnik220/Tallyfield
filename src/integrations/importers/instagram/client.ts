@@ -8,6 +8,8 @@ const media = z.object({
   caption: z.string().optional(),
   media_type: z.string(),
   media_url: z.string().optional(),
+  thumbnail_url: z.string().optional(),
+  timestamp: z.string().optional(),
   children: z.object({ data: z.array(child) }).optional(),
 })
 const page = z.object({
@@ -16,7 +18,7 @@ const page = z.object({
 })
 export type InstagramMedia = z.infer<typeof media>
 
-const FIELDS = 'id,permalink,caption,media_type,media_url,children{id,media_type,media_url}'
+const FIELDS = 'id,permalink,caption,media_type,media_url,thumbnail_url,timestamp,children{id,media_type,media_url}'
 
 export interface InstagramClientOptions {
   apiVersion: string
@@ -64,4 +66,31 @@ export async function findOwnMediaByShortcode(accessToken: string, shortcode: st
     if (!after) break
   }
   throw new AppError('not_found', 'That post was not found on the connected Instagram account.')
+}
+
+async function fetchPage(accessToken: string, options: InstagramClientOptions, after: string | undefined) {
+  const doFetch = options.fetchImpl ?? fetch
+  const url = mediaListUrl(accessToken, options)
+  url.searchParams.set('fields', FIELDS)
+  url.searchParams.set('limit', '50')
+  if (after) url.searchParams.set('after', after)
+  const response = await doFetch(url, { headers: { Authorization: `Bearer ${accessToken}` }, signal: AbortSignal.timeout(15_000) })
+  if (response.status === 401 || response.status === 403) throw new AppError('upstream', 'Instagram rejected the connection. Reconnect the account.')
+  if (!response.ok) throw new AppError('upstream', 'Instagram did not respond. Try again in a minute.')
+  const parsed = page.safeParse(await response.json())
+  if (!parsed.success) throw new AppError('upstream', 'Instagram returned something unexpected.')
+  return parsed.data
+}
+
+/** Every post on the connected account, newest first (up to maxPages x 50; default 600). Used by bulk sync. */
+export async function listOwnMedia(accessToken: string, options: InstagramClientOptions): Promise<InstagramMedia[]> {
+  const all: InstagramMedia[] = []
+  let after: string | undefined
+  for (let i = 0; i < (options.maxPages ?? 12); i += 1) {
+    const p = await fetchPage(accessToken, options, after)
+    all.push(...p.data)
+    after = p.paging?.next ? p.paging.cursors?.after : undefined
+    if (!after) break
+  }
+  return all
 }

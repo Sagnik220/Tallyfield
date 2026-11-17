@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react'
 
 export interface Issue {
   slug: string
@@ -14,22 +14,36 @@ export interface Issue {
 }
 
 const pad = (n: number) => String(n).padStart(2, '0')
-const AUTO_MS = 5600
+/** Moves on to the next issue after this long without the visitor moving it themselves. */
+const AUTO_MS = 7000
 const DRAG_THRESHOLD = 6
 
 /**
  * "The issues": a 3D cover-flow of recent posts.
  * Each card is the post's cover slide. Cards sit on a curved track in depth; the track glides with a long
  * eased transition, follows the pointer while dragging, and the front card tilts towards the cursor.
- * Rotates on its own, pauses on hover/focus, and stays still for people who prefer reduced motion.
+ * Moves to the next card every 7 seconds; any manual move restarts the countdown. It holds while dragging,
+ * while a keyboard user is inside it, when it is off screen or the tab is hidden, and when paused with the
+ * pause button. People who prefer reduced motion start paused (they can press play).
  */
+function subscribeReduced(cb: () => void) {
+  const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+  mq.addEventListener('change', cb)
+  return () => mq.removeEventListener('change', cb)
+}
+const reducedNow = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
 export function IssuesCarousel({ issues }: { issues: Issue[] }) {
   const count = issues.length
   // The track always has at least 5 slots (short lists repeat), so the card that wraps from one end to the
   // other does so out of sight instead of sliding across the front.
   const slots = count < 2 ? count : count * Math.ceil(5 / count)
   const [active, setActive] = useState(0) // slot index
-  const [held, setHeld] = useState(false)
+  const [held, setHeld] = useState(false) // keyboard focus inside
+  const [userPaused, setUserPaused] = useState<boolean | null>(null)
+  const [onScreen, setOnScreen] = useState(true)
+  const [tabVisible, setTabVisible] = useState(true)
+  const reduced = useSyncExternalStore(subscribeReduced, reducedNow, () => false)
   const [drag, setDrag] = useState(0) // fractional cards moved during a drag
   const [dragging, setDragging] = useState(false)
   const [tilt, setTilt] = useState({ x: 0, y: 0 })
@@ -39,12 +53,28 @@ export function IssuesCarousel({ issues }: { issues: Issue[] }) {
 
   const go = useCallback((step: number) => setActive((a) => (((a + step) % slots) + slots) % slots), [slots])
 
+  const paused = userPaused ?? reduced
+  const running = count > 1 && !paused && !held && !dragging && onScreen && tabVisible
+
+  // One countdown per card: changing card (by hand or automatically) starts a fresh 7 seconds.
   useEffect(() => {
-    if (count < 2 || held || dragging) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const timer = setInterval(() => go(1), AUTO_MS)
-    return () => clearInterval(timer)
-  }, [count, held, dragging, go])
+    if (!running) return
+    const timer = window.setTimeout(() => go(1), AUTO_MS)
+    return () => window.clearTimeout(timer)
+  }, [running, active, go])
+
+  useEffect(() => {
+    const el = stage.current
+    if (!el) return
+    const io = new IntersectionObserver(([entry]) => setOnScreen(Boolean(entry?.isIntersecting)), { threshold: 0.25 })
+    io.observe(el)
+    const onVis = () => setTabVisible(document.visibilityState === 'visible')
+    document.addEventListener('visibilitychange', onVis)
+    return () => {
+      io.disconnect()
+      document.removeEventListener('visibilitychange', onVis)
+    }
+  }, [])
 
   if (count === 0) return null
   const shown = active % count
@@ -119,9 +149,17 @@ export function IssuesCarousel({ issues }: { issues: Issue[] }) {
         </div>
         {count > 1 ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div aria-live="polite" style={{ fontSize: 'var(--t-small)', fontWeight: 700, color: 'var(--grey-2)', minWidth: 64, fontVariantNumeric: 'tabular-nums' }}>
-              {pad(shown + 1)} / {pad(count)}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 64 }}>
+              <div aria-live={running ? 'off' : 'polite'} style={{ fontSize: 'var(--t-small)', fontWeight: 700, color: 'var(--grey-2)', fontVariantNumeric: 'tabular-nums' }}>
+                {pad(shown + 1)} / {pad(count)}
+              </div>
+              <span className="tf-flow-progress" aria-hidden="true">
+                <span key={`${active}-${String(running)}`} data-running={running ? 'true' : undefined} style={{ animationDuration: `${AUTO_MS}ms` }} />
+              </span>
             </div>
+            <button className="tf-btn tf-flow-play" type="button" aria-label={paused ? 'Play: move through the issues automatically' : 'Pause automatic scrolling'} aria-pressed={paused} onClick={() => setUserPaused(!paused)}>
+              {paused ? '▶' : '❚❚'}
+            </button>
             <button className="tf-btn" type="button" aria-label="Previous issue" onClick={() => go(-1)}>
               ←
             </button>
@@ -145,14 +183,17 @@ export function IssuesCarousel({ issues }: { issues: Issue[] }) {
         onPointerMove={onPointerMove}
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
-        onPointerEnter={() => setHeld(true)}
         onPointerLeave={() => {
-          setHeld(false)
           setTilt({ x: 0, y: 0 })
           endDrag()
         }}
-        onFocus={() => setHeld(true)}
-        onBlur={() => setHeld(false)}
+        onFocus={(e) => {
+          // Hold for keyboard users reading the cards; a mouse click should not stop the rotation.
+          if (e.currentTarget.matches(':focus-visible') || e.target.matches(':focus-visible')) setHeld(true)
+        }}
+        onBlur={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setHeld(false)
+        }}
       >
         {Array.from({ length: slots }, (_, slot) => {
           const i = slot % count

@@ -8,6 +8,7 @@ const LINKS = [
   { href: '/admin/analytics', label: 'Analytics' },
   { href: '/admin/new', label: 'Write a post' },
   { href: '/admin/import', label: 'Import from Instagram' },
+  { href: '/admin/sync', label: 'Sync with Instagram' },
   { href: '/admin/stories', label: 'Stories' },
 ]
 

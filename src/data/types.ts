@@ -19,6 +19,8 @@ export interface PostRow {
   published_at: string | null
   created_at: string
   updated_at: string
+  /** Set when the title, intro or text was changed by hand; bulk sync leaves such posts alone. */
+  content_edited_at: string | null
 }
 
 export interface MediaRow {

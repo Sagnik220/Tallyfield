@@ -4,8 +4,9 @@ import type { Db } from '@/lib/supabase/server'
 import { AppError } from '@/domain/result'
 import { ALLOWED_IMAGE_TYPES, saveImage } from '@/data/media.repo'
 import * as posts from '@/data/posts.repo'
-import { findSource, insertSource } from '@/data/sources.repo'
+import { findSource, insertSource, relinkSource } from '@/data/sources.repo'
 import type { ImporterRegistry } from '@/integrations/importers/registry'
+import type { ImportedPost } from '@/integrations/importers/types'
 import { safeDownload } from '@/integrations/safe-fetch'
 import { uniqueSlug } from './posts.service'
 
@@ -38,16 +39,26 @@ export async function importFromLink({ db, user }: ActionContext<Db>, request: I
   const { importer, url } = deps.importers.resolve(request.link)
   const token = await deps.getToken(importer.provider)
   const imported = await importer.fetchPost(url, token)
-
   const existing = await findSource(db, imported.provider, imported.externalId)
   if (existing?.post_id) throw new AppError('conflict', 'That post has already been imported.')
-  if (imported.imageUrls.length === 0) throw new AppError('invalid_input', 'That post has no images to import.')
+  return createFromImported({ db, user }, imported, { categoryId: request.categoryId, status: 'draft', imageHosts: importer.imageHosts, download: deps.download, sourceExists: Boolean(existing) })
+}
 
-  const download = deps.download ?? safeDownload
+/**
+ * Creates a gallery post from an already fetched post: copies its images into our storage, creates the post
+ * and records where it came from. Used by single imports and bulk sync.
+ */
+export async function createFromImported(
+  { db, user }: ActionContext<Db>,
+  imported: ImportedPost,
+  opts: { categoryId: string; status: 'draft' | 'published'; imageHosts: readonly string[]; download?: typeof safeDownload | undefined; sourceExists?: boolean },
+): Promise<{ postId: string; slides: number }> {
+  if (imported.imageUrls.length === 0) throw new AppError('invalid_input', 'That post has no images to import.')
+  const download = opts.download ?? safeDownload
   const title = headlineFromCaption(imported.caption)
   const mediaIds: string[] = []
   for (const [index, imageUrl] of imported.imageUrls.slice(0, MAX_SLIDES).entries()) {
-    const file = await download(imageUrl, { allowedHosts: importer.imageHosts, allowedTypes: ALLOWED_IMAGE_TYPES, maxBytes: MAX_IMAGE_BYTES })
+    const file = await download(imageUrl, { allowedHosts: opts.imageHosts, allowedTypes: ALLOWED_IMAGE_TYPES, maxBytes: MAX_IMAGE_BYTES })
     const media = await saveImage(db, { ...file, alt: `${title}, slide ${index + 1}`, source: 'instagram', createdBy: user.id })
     mediaIds.push(media.id)
   }
@@ -56,14 +67,15 @@ export async function importFromLink({ db, user }: ActionContext<Db>, request: I
     slug: await uniqueSlug(db, title),
     title,
     kind: 'gallery',
-    status: 'draft',
-    category_id: request.categoryId,
+    status: opts.status,
+    category_id: opts.categoryId,
     cover_media_id: mediaIds[0] ?? null,
     source_url: imported.permalink,
     author_id: user.id,
     body: { version: 1, blocks: [{ id: crypto.randomUUID(), type: 'gallery', data: { mediaIds, caption: imported.caption.slice(0, CAPTION_MAX) } }] },
   })
   await posts.setPostMedia(db, post.id, mediaIds)
-  await insertSource(db, { postId: post.id, provider: imported.provider, externalId: imported.externalId, permalink: imported.permalink, caption: imported.caption })
+  if (opts.sourceExists) await relinkSource(db, imported.provider, imported.externalId, post.id, imported.caption)
+  else await insertSource(db, { postId: post.id, provider: imported.provider, externalId: imported.externalId, permalink: imported.permalink, caption: imported.caption })
   return { postId: post.id, slides: mediaIds.length }
 }

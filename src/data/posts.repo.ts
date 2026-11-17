@@ -5,7 +5,7 @@ import { raise } from './errors'
 import type { PostRow } from './types'
 
 const COLUMNS =
-  'id, slug, title, deck, kind, status, category_id, cover_media_id, body, source_url, prices_checked_on, price_sources, author_id, published_at, created_at, updated_at'
+  'id, slug, title, deck, kind, status, category_id, cover_media_id, body, source_url, prices_checked_on, price_sources, author_id, published_at, created_at, updated_at, content_edited_at'
 
 export type PostWrite = Partial<Omit<PostRow, 'id' | 'created_at' | 'updated_at' | 'published_at'>>
 
@@ -31,7 +31,7 @@ export async function listPostsForAdmin(db: Db, status?: PostStatus): Promise<Po
   return (data ?? []) as unknown as PostRow[]
 }
 
-export type PostSummary = Omit<PostRow, 'body' | 'price_sources' | 'prices_checked_on' | 'author_id'>
+export type PostSummary = Omit<PostRow, 'body' | 'price_sources' | 'prices_checked_on' | 'author_id' | 'content_edited_at'>
 
 /** Every post without its body, for the admin list and analytics (light enough for a few thousand rows). */
 export async function listPostSummariesForAdmin(db: Db): Promise<PostSummary[]> {
@@ -85,4 +85,18 @@ export async function setPostMedia(db: Db, postId: string, mediaIds: string[]): 
   const rows = mediaIds.map((media_id, position) => ({ post_id: postId, media_id, position }))
   const { error } = await db.from('post_media').insert(rows)
   if (error) raise(error, 'setPostMedia.insert')
+}
+
+export type SyncPost = Pick<PostRow, 'id' | 'slug' | 'title' | 'status' | 'body' | 'content_edited_at'>
+
+/** Posts that came from Instagram, with what sync needs to decide whether it may update them. */
+export async function getPostsForSync(db: Db, ids: string[]): Promise<SyncPost[]> {
+  if (ids.length === 0) return []
+  const out: SyncPost[] = []
+  for (let i = 0; i < ids.length; i += 200) {
+    const { data, error } = await db.from('posts').select('id, slug, title, status, body, content_edited_at').in('id', ids.slice(i, i + 200))
+    if (error) raise(error, 'getPostsForSync')
+    out.push(...((data ?? []) as unknown as SyncPost[]))
+  }
+  return out
 }

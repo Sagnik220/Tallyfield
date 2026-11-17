@@ -1920,3 +1920,89 @@ img {
 .tf-rich-table[data-wide='true'] tbody th {
   width: 22%;
 }
+
+/* Issues carousel: autoplay countdown */
+.tf-flow-progress {
+  display: block;
+  height: 2px;
+  width: 100%;
+  background: var(--rule-dark);
+  overflow: hidden;
+}
+.tf-flow-progress > span {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: var(--gold);
+  transform-origin: left center;
+  transform: scaleX(0);
+}
+.tf-flow-progress > span[data-running] {
+  animation-name: tf-flow-countdown;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+@keyframes tf-flow-countdown {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.tf-flow-play {
+  font-size: 13px;
+  letter-spacing: -0.1em;
+}
+
+/* Instagram sync screen */
+.tf-sync-tile {
+  gap: 6px;
+  padding: 14px 16px;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.tf-sync-tile[aria-pressed='true'] {
+  border-color: var(--gold);
+  background: var(--panel-hi);
+}
+.tf-sync-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  font-size: 14px;
+  color: var(--ink-cream);
+}
+.tf-sync-check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--gold);
+}
+.tf-sync-status {
+  display: inline-block;
+  padding: 3px 8px;
+  border: 1px solid var(--stroke);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  color: var(--grey-1);
+}
+.tf-sync-status[data-status='new'] {
+  border-color: var(--gold);
+  color: var(--gold-light);
+}
+.tf-sync-status[data-status='changed'] {
+  border-color: var(--warn);
+  color: var(--warn);
+}
+.tf-sync-status[data-status='edited'] {
+  border-color: #7e9470;
+  color: #a9c19a;
+}
+.tf-sync-status[data-status='removed'],
+.tf-sync-status[data-status='no_images'] {
+  color: var(--grey-3);
+}

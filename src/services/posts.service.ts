@@ -19,6 +19,13 @@ export async function uniqueSlug(db: Db, wanted: string): Promise<string> {
   throw new AppError('conflict', 'Could not find a free web address for that title.')
 }
 
+/** JSON with object keys sorted, so two equal documents compare equal whatever order the database stored keys in. */
+export function stableJson(value: unknown): string {
+  return JSON.stringify(value, (_k, v: unknown) =>
+    v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v as Record<string, unknown>).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) : v,
+  )
+}
+
 function toRow(input: Partial<PostInput>): posts.PostWrite {
   const row: posts.PostWrite = {}
   if (input.title !== undefined) row.title = input.title
@@ -44,8 +51,17 @@ export async function createPost({ db, user }: Ctx, input: PostInput): Promise<P
 export async function updatePost({ db }: Ctx, input: PostUpdate): Promise<PostRow> {
   const { id, tagIds, slug, ...rest } = input
   const values = toRow(rest)
-  if (slug !== undefined) {
-    const current = await posts.getPostById(db, id)
+  const current = values.title !== undefined || values.deck !== undefined || values.body !== undefined || slug !== undefined ? await posts.getPostById(db, id) : null
+  // A real change to the words marks the post as edited by hand, so Instagram sync will not overwrite it.
+  if (
+    current &&
+    ((values.title !== undefined && values.title !== current.title) ||
+      (values.deck !== undefined && values.deck !== current.deck) ||
+      (values.body !== undefined && stableJson(values.body) !== stableJson(current.body)))
+  ) {
+    values.content_edited_at = new Date().toISOString()
+  }
+  if (slug !== undefined && current) {
     // A published address is permanent: links shared on Instagram must keep working.
     if (current.slug !== slug && current.published_at) throw new AppError('conflict', 'The web address of a published post cannot be changed.')
     values.slug = slug
