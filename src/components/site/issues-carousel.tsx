@@ -25,7 +25,10 @@ const DRAG_THRESHOLD = 6
  */
 export function IssuesCarousel({ issues }: { issues: Issue[] }) {
   const count = issues.length
-  const [active, setActive] = useState(0)
+  // The track always has at least 5 slots (short lists repeat), so the card that wraps from one end to the
+  // other does so out of sight instead of sliding across the front.
+  const slots = count < 2 ? count : count * Math.ceil(5 / count)
+  const [active, setActive] = useState(0) // slot index
   const [held, setHeld] = useState(false)
   const [drag, setDrag] = useState(0) // fractional cards moved during a drag
   const [dragging, setDragging] = useState(false)
@@ -34,7 +37,7 @@ export function IssuesCarousel({ issues }: { issues: Issue[] }) {
   const pointer = useRef<{ x: number; width: number; moved: boolean } | null>(null)
   const justDragged = useRef(false)
 
-  const go = useCallback((step: number) => setActive((a) => (((a + step) % count) + count) % count), [count])
+  const go = useCallback((step: number) => setActive((a) => (((a + step) % slots) + slots) % slots), [slots])
 
   useEffect(() => {
     if (count < 2 || held || dragging) return
@@ -44,14 +47,15 @@ export function IssuesCarousel({ issues }: { issues: Issue[] }) {
   }, [count, held, dragging, go])
 
   if (count === 0) return null
-  const current = issues[active] ?? issues[0]!
+  const shown = active % count
+  const current = issues[shown] ?? issues[0]!
   const reach = count >= 5 ? 2 : 1 // how many cards show on each side
 
-  /** Signed distance of card i from the front, wrapped round the loop, including any drag in progress. */
+  /** Signed distance of slot i from the front, wrapped round the loop, including any drag in progress. */
   function offsetOf(i: number) {
     let off = i - active
-    if (off > count / 2) off -= count
-    if (off < -count / 2) off += count
+    if (off > slots / 2) off -= slots
+    if (off < -slots / 2) off += slots
     return off + drag
   }
 
@@ -116,7 +120,7 @@ export function IssuesCarousel({ issues }: { issues: Issue[] }) {
         {count > 1 ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <div aria-live="polite" style={{ fontSize: 17, fontWeight: 700, color: 'var(--grey-2)', minWidth: 72, fontVariantNumeric: 'tabular-nums' }}>
-              {pad(active + 1)} / {pad(count)}
+              {pad(shown + 1)} / {pad(count)}
             </div>
             <button className="tf-btn" type="button" aria-label="Previous issue" onClick={() => go(-1)}>
               ←
@@ -150,8 +154,10 @@ export function IssuesCarousel({ issues }: { issues: Issue[] }) {
         onFocus={() => setHeld(true)}
         onBlur={() => setHeld(false)}
       >
-        {issues.map((issue, i) => {
-          const off = offsetOf(i)
+        {Array.from({ length: slots }, (_, slot) => {
+          const i = slot % count
+          const issue = issues[i]!
+          const off = offsetOf(slot)
           const dist = Math.abs(off)
           const front = Math.round(off) === 0
           const visible = dist <= reach + 0.5
@@ -169,7 +175,7 @@ export function IssuesCarousel({ issues }: { issues: Issue[] }) {
             <>
               <span className="tf-flow-img">
                 {issue.image ? (
-                  <Image src={issue.image} alt={issue.imageAlt} fill sizes="(max-width: 700px) 72vw, 400px" style={{ objectFit: 'cover' }} draggable={false} priority={i === 0} />
+                  <Image src={issue.image} alt={issue.imageAlt} fill sizes="(max-width: 700px) 72vw, 400px" style={{ objectFit: 'cover' }} draggable={false} priority={slot === 0} />
                 ) : null}
                 <span className="tf-flow-sheen" aria-hidden="true" />
               </span>
@@ -186,7 +192,7 @@ export function IssuesCarousel({ issues }: { issues: Issue[] }) {
 
           return front ? (
             <Link
-              key={issue.slug}
+              key={slot}
               className="tf-flow-card"
               data-front="true"
               href={`/posts/${issue.slug}`}
@@ -201,14 +207,14 @@ export function IssuesCarousel({ issues }: { issues: Issue[] }) {
             </Link>
           ) : (
             <button
-              key={issue.slug}
+              key={slot}
               className="tf-flow-card"
               type="button"
               style={style}
               tabIndex={-1}
               aria-label={`Show issue: ${issue.title}`}
               onClick={() => {
-                if (!justDragged.current) setActive(i)
+                if (!justDragged.current) setActive(slot)
               }}
             >
               {inner}
