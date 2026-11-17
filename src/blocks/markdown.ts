@@ -2,7 +2,8 @@ import type { RichMark, RichNode } from './definitions/rich-text'
 
 /**
  * Turns caption-style Markdown (what people write in Instagram captions and paste from other tools) into a rich
- * text document: # headings, **bold**, *italic*, - lists, 1. lists, > quotes, --- dividers and [links](https://…).
+ * text document: # headings, **bold**, *italic*, - lists, 1. lists, > quotes, --- dividers, [links](https://…)
+ * and | tables | with a |---| line under the header row.
  * Only builds allow-listed nodes, so the result passes the rich text schema like anything typed in the editor.
  * Lines that are only hashtags are dropped. Single line breaks inside a paragraph are kept (captions rely on them).
  */
@@ -16,6 +17,21 @@ const BULLET = /^\s*[-*•]\s+(.*)$/
 const ORDERED = /^\s*\d{1,3}[.)]\s+(.*)$/
 const QUOTE = /^\s*>\s?(.*)$/
 const RULE = /^\s*([-*_])(\s*\1){2,}\s*$/
+const TABLE_SEPARATOR = /^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$/
+
+function cells(line: string): string[] {
+  let s = line.trim()
+  if (s.startsWith('|')) s = s.slice(1)
+  if (s.endsWith('|') && !s.endsWith('\\|')) s = s.slice(0, -1)
+  return s.split(/(?<!\\)\|/).map((c) => c.replace(/\\\|/g, '|').trim())
+}
+
+function tableNode(header: string[] | null, rows: string[][]): RichNode {
+  const width = Math.min(20, Math.max(header?.length ?? 0, ...rows.map((r) => r.length)))
+  const cell = (type: 'tableHeader' | 'tableCell', text: string) => ({ type, content: [para(text ? [text] : [])] })
+  const row = (vals: string[], type: 'tableHeader' | 'tableCell') => ({ type: 'tableRow', content: Array.from({ length: width }, (_, i) => cell(type, vals[i] ?? '')) })
+  return { type: 'table', content: [...(header ? [row(header, 'tableHeader')] : []), ...rows.slice(0, 299).map((r) => row(r, 'tableCell'))] } as RichNode
+}
 
 /** Inline Markdown: links, bold, italic. Unmatched markers stay as plain characters. */
 export function parseInline(src: string): Inline[] {
@@ -76,7 +92,23 @@ export function markdownToRichDoc(markdown: string): Doc {
     quote = []
   }
 
-  for (const line of raw) {
+  for (let i = 0; i < raw.length; i += 1) {
+    const line = raw[i]!
+    // A table: a row with | cells followed by a |---|---| line, then more | rows.
+    const next = raw[i + 1] ?? ''
+    if (line.includes('|') && TABLE_SEPARATOR.test(next) && (line.trim().startsWith('|') || next.includes('|'))) {
+      flush()
+      const header = cells(line)
+      const rows: string[][] = []
+      i += 2
+      while (i < raw.length && raw[i]!.includes('|') && raw[i]!.trim()) {
+        if (!TABLE_SEPARATOR.test(raw[i]!)) rows.push(cells(raw[i]!))
+        i += 1
+      }
+      i -= 1
+      content.push(tableNode(header, rows))
+      continue
+    }
     if (!line.trim()) {
       flush()
       continue
@@ -118,5 +150,5 @@ export function markdownToRichDoc(markdown: string): Doc {
 
 /** True when text uses enough Markdown that converting it is worthwhile. */
 export function looksLikeMarkdown(text: string): boolean {
-  return /^#{1,6}\s|\*\*[^*]+\*\*|^\s*[-*]\s|^\s*>\s/m.test(text)
+  return /^#{1,6}\s|\*\*[^*]+\*\*|^\s*[-*]\s|^\s*>\s|^\s*\|.*\|\s*$/m.test(text)
 }

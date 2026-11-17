@@ -82,8 +82,20 @@ const embed = z.object({
 })
 const rule = z.object({ type: z.literal('horizontalRule') })
 
+// Tables (spec sheets, comparisons): rows of header/body cells, each cell holding short paragraphs.
+const cell = z.object({
+  type: z.enum(['tableHeader', 'tableCell']),
+  attrs: z
+    .object({ colspan: z.number().int().min(1).max(20).optional(), rowspan: z.number().int().min(1).max(300).optional(), colwidth: z.array(z.number().int().positive().max(4000)).nullish() })
+    .loose()
+    .optional(),
+  content: z.array(paragraph).min(1).max(20),
+})
+const tableRow = z.object({ type: z.literal('tableRow'), content: z.array(cell).min(1).max(20) })
+const table = z.object({ type: z.literal('table'), content: z.array(tableRow).min(1).max(300) })
+
 // Lists and quotes contain other blocks, so the schema is recursive.
-type Node = z.infer<typeof paragraph> | z.infer<typeof heading> | z.infer<typeof media> | z.infer<typeof embed> | z.infer<typeof rule> | Container
+type Node = z.infer<typeof paragraph> | z.infer<typeof heading> | z.infer<typeof media> | z.infer<typeof embed> | z.infer<typeof rule> | z.infer<typeof table> | Container
 interface Container {
   type: 'bulletList' | 'orderedList' | 'listItem' | 'blockquote'
   attrs?: Record<string, unknown> | undefined
@@ -96,6 +108,7 @@ const node: z.ZodType<Node> = z.lazy(() =>
     media,
     embed,
     rule,
+    table,
     z.object({
       type: z.enum(['bulletList', 'orderedList', 'listItem', 'blockquote']),
       attrs: z.record(z.string(), z.unknown()).optional(),
@@ -116,7 +129,8 @@ function plain(n: unknown): string {
   const o = n as { type?: string; text?: string; content?: unknown[]; attrs?: { caption?: string } }
   if (o.type === 'text') return o.text ?? ''
   if (o.type === 'media') return o.attrs?.caption ?? ''
-  const inner = (o.content ?? []).map(plain).join(o.type === 'paragraph' || o.type === 'heading' ? '' : '\n')
+  const sep = o.type === 'paragraph' || o.type === 'heading' ? '' : o.type === 'tableRow' ? ' | ' : '\n'
+  const inner = (o.content ?? []).map(plain).join(sep)
   return inner
 }
 

@@ -58,3 +58,39 @@ describe('markdownToRichDoc', () => {
     expect(JSON.stringify(d)).not.toContain('"link"')
   })
 })
+
+describe('markdown tables', () => {
+  const md = `## Specifications at a Glance
+
+| Specification | Details |
+|---|---|
+| Brand | Timex |
+| Collection | René Tank |
+| Movement | **Quartz** |
+| Strap | Leather \\| croc-grain |
+
+After the table.`
+  const doc = markdownToRichDoc(md)
+  const table = doc.content.find((n) => n.type === 'table') as unknown as { content: { content: { type: string; content: { content?: { text: string; marks?: unknown[] }[] }[] }[] }[] }
+
+  it('turns pipe rows into a valid table with a header row', () => {
+    expect(richDoc.safeParse(doc).success).toBe(true)
+    expect(doc.content.map((n) => n.type)).toEqual(['heading', 'table', 'paragraph'])
+    expect(table.content).toHaveLength(5)
+    expect(table.content[0]!.content.map((c) => c.type)).toEqual(['tableHeader', 'tableHeader'])
+    expect(table.content[1]!.content[1]!.content[0]!.content![0]!.text).toBe('Timex')
+  })
+  it('keeps formatting and escaped pipes inside cells', () => {
+    expect(table.content[3]!.content[1]!.content[0]!.content![0]!.marks).toEqual([{ type: 'bold' }])
+    expect(table.content[4]!.content[1]!.content[0]!.content![0]!.text).toBe('Leather | croc-grain')
+  })
+  it('handles comparison tables with more columns and ragged rows', () => {
+    const d = markdownToRichDoc('| | Rolex | Seiko | Timex |\n|:--|:-:|:-:|--:|\n| Price | ₹11L | ₹40k |\n| Movement | Auto | Auto | Quartz |')
+    expect(richDoc.safeParse(d).success).toBe(true)
+    const t = d.content[0] as unknown as { content: { content: unknown[] }[] }
+    expect(t.content.every((r) => r.content.length === 4)).toBe(true)
+  })
+  it('does not mistake a divider under a normal line for a table', () => {
+    expect(markdownToRichDoc('Hello there\n---\nMore').content.some((n) => n.type === 'table')).toBe(false)
+  })
+})

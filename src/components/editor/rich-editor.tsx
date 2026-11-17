@@ -2,13 +2,14 @@
 
 import { Extension, type JSONContent } from '@tiptap/core'
 import { Highlight } from '@tiptap/extension-highlight'
+import { Table, TableCell, TableHeader, TableRow } from '@tiptap/extension-table'
 import { TextAlign } from '@tiptap/extension-text-align'
 import { Color, FontSize, TextStyle } from '@tiptap/extension-text-style'
 import { Placeholder } from '@tiptap/extensions'
 import { EditorContent, useEditor, useEditorState, type Editor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { useRef, useState, type ChangeEvent } from 'react'
-import { COLORS, FONT_SIZES, HIGHLIGHTS } from '@/blocks'
+import { COLORS, FONT_SIZES, HIGHLIGHTS, looksLikeMarkdown, markdownToRichDoc } from '@/blocks'
 import { ACCEPT, parseEmbed, uploadMedia } from '@/lib/upload'
 import { EmbedNode, MediaNode } from './rich-nodes'
 
@@ -74,6 +75,7 @@ function Toolbar({ editor, onFiles, busy }: { editor: Editor; onFiles: (files: F
       bullet: e.isActive('bulletList'),
       ordered: e.isActive('orderedList'),
       quote: e.isActive('blockquote'),
+      table: e.isActive('table'),
       align: (['center', 'right', 'justify'] as const).find((a) => e.isActive({ textAlign: a })) ?? 'left',
       canUndo: e.can().undo(),
       canRedo: e.can().redo(),
@@ -196,6 +198,9 @@ function Toolbar({ editor, onFiles, busy }: { editor: Editor; onFiles: (files: F
         <ToolbarButton label="Divider" onClick={() => chain().setHorizontalRule().run()}>
           —
         </ToolbarButton>
+        <ToolbarButton label="Insert table (spec sheet or comparison)" on={s.table} onClick={() => chain().insertTable({ rows: 4, cols: 2, withHeaderRow: true }).run()}>
+          ▦
+        </ToolbarButton>
         <select className="tf-ed-select" aria-label="Alignment" value={s.align} onChange={(e) => {
             chain().setTextAlign(e.target.value).run()
             refocus()
@@ -206,6 +211,33 @@ function Toolbar({ editor, onFiles, busy }: { editor: Editor; onFiles: (files: F
           <option value="justify">Justify</option>
         </select>
       </div>
+
+      {s.table ? (
+        <div className="tf-ed-group tf-ed-tablebar" role="group" aria-label="Table">
+          <span className="tf-ed-tablebar-label">Table</span>
+          <ToolbarButton label="Add row below" onClick={() => chain().addRowAfter().run()}>
+            + Row
+          </ToolbarButton>
+          <ToolbarButton label="Add column to the right" onClick={() => chain().addColumnAfter().run()}>
+            + Column
+          </ToolbarButton>
+          <ToolbarButton label="Delete this row" onClick={() => chain().deleteRow().run()}>
+            − Row
+          </ToolbarButton>
+          <ToolbarButton label="Delete this column" onClick={() => chain().deleteColumn().run()}>
+            − Column
+          </ToolbarButton>
+          <ToolbarButton label="Make the first row titles (or not)" onClick={() => chain().toggleHeaderRow().run()}>
+            Title row
+          </ToolbarButton>
+          <ToolbarButton label="Make the first column labels (or not)" onClick={() => chain().toggleHeaderColumn().run()}>
+            Label column
+          </ToolbarButton>
+          <ToolbarButton label="Delete the whole table" onClick={() => chain().deleteTable().run()}>
+            Delete table
+          </ToolbarButton>
+        </div>
+      ) : null}
 
       <div className="tf-ed-group">
         <ToolbarButton label="Emoji" on={panel === 'emoji'} onClick={() => setPanel(panel === 'emoji' ? '' : 'emoji')}>
@@ -360,6 +392,10 @@ export function RichEditor({ initial, onChange, onUploaded, placeholder = 'Write
       Placeholder.configure({ placeholder }),
       MediaNode,
       EmbedNode,
+      Table.configure({ resizable: false, HTMLAttributes: { class: 'tf-ed-table' } }),
+      TableRow,
+      TableHeader,
+      TableCell,
     ],
     content: initial,
     editorProps: {
@@ -368,10 +404,21 @@ export function RichEditor({ initial, onChange, onUploaded, placeholder = 'Write
       transformPastedHTML: (html) => html.replace(/\s(style|class|id)="[^"]*"/gi, ''),
       handlePaste: (_view, event) => {
         const files = [...(event.clipboardData?.files ?? [])].filter((f) => f.type.startsWith('image/') || f.type.startsWith('video/'))
-        if (!files.length) return false
-        event.preventDefault()
-        void insertFiles(files)
-        return true
+        if (files.length) {
+          event.preventDefault()
+          void insertFiles(files)
+          return true
+        }
+        // Markdown pasted as plain text (# headings, **bold**, - lists, | tables |) becomes real formatting.
+        const text = event.clipboardData?.getData('text/plain') ?? ''
+        const html = event.clipboardData?.getData('text/html') ?? ''
+        const markdownTable = /^\s*\|.*\|\s*$\n^\s*\|?\s*:?-+/m.test(text) && !/<table/i.test(html)
+        if (text && (markdownTable || (!html && looksLikeMarkdown(text)))) {
+          event.preventDefault()
+          editorRef.current?.chain().focus().insertContent(markdownToRichDoc(text).content as JSONContent[]).run()
+          return true
+        }
+        return false
       },
       handleDrop: (view, event) => {
         const files = [...(event.dataTransfer?.files ?? [])].filter((f) => f.type.startsWith('image/') || f.type.startsWith('video/'))

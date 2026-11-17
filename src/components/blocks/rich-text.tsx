@@ -133,6 +133,68 @@ function Embed({ attrs }: { attrs: { provider: string; id: string } }) {
   )
 }
 
+type CellNode = { type: 'tableHeader' | 'tableCell'; attrs?: { colspan?: number; rowspan?: number }; content?: { content?: unknown[] }[] }
+type TableNode = { content?: { content?: CellNode[] }[] }
+
+/**
+ * Spec sheets and comparisons. A header row becomes column titles; when every body row starts with a header
+ * cell or the table has two columns, the first column reads as row labels. Wide tables break out of the column
+ * and scroll sideways on phones.
+ */
+function Table({ node, k }: { node: TableNode; k: string }) {
+  const rows = node.content ?? []
+  const width = Math.max(0, ...rows.map((r) => (r.content ?? []).reduce((n, c) => n + (c.attrs?.colspan ?? 1), 0)))
+  const headIsRow = (rows[0]?.content ?? []).every((c) => c.type === 'tableHeader')
+  const head = headIsRow ? rows[0] : undefined
+  const body = headIsRow ? rows.slice(1) : rows
+  // Row labels: two-column spec sheets, an empty top-left title (comparisons), or a header first column.
+  const topLeft = head?.content?.[0]
+  const topLeftEmpty = Boolean(topLeft) && (topLeft!.content ?? []).every((p) => !(p.content ?? []).length)
+  const labels = width === 2 || topLeftEmpty || body.every((r) => r.content?.[0]?.type === 'tableHeader')
+  const cellContent = (c: CellNode, key: string) => (c.content ?? []).map((p, i) => <span key={i} className="tf-cell-line">{inline(p.content, `${key}.${i}`)}</span>)
+  const span = (c: CellNode) => ({ ...(c.attrs?.colspan && c.attrs.colspan > 1 ? { colSpan: c.attrs.colspan } : {}), ...(c.attrs?.rowspan && c.attrs.rowspan > 1 ? { rowSpan: c.attrs.rowspan } : {}) })
+  return (
+    <div className="tf-rich-table" data-wide={width >= 4 ? 'true' : undefined} role="region" aria-label="Table" tabIndex={0}>
+      <table data-labels={labels ? 'true' : undefined}>
+        {head ? (
+          <thead>
+            <tr>
+              {(head.content ?? []).map((c, i) => (
+                <th key={i} scope="col" {...span(c)}>
+                  {cellContent(c, `${k}.h.${i}`)}
+                </th>
+              ))}
+            </tr>
+          </thead>
+        ) : null}
+        <tbody>
+          {body.map((r, ri) => (
+            <tr key={ri}>
+              {(r.content ?? []).map((c, ci) => {
+                const key = `${k}.${ri}.${ci}`
+                return c.type === 'tableHeader' || (labels && ci === 0) ? (
+                  <th key={ci} scope="row" {...span(c)}>
+                    {cellContent(c, key)}
+                  </th>
+                ) : (
+                  <td key={ci} {...span(c)}>
+                    {cellContent(c, key)}
+                  </td>
+                )
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {width >= 4 ? (
+        <p className="tf-rich-table-hint" aria-hidden="true">
+          Swipe to see every column →
+        </p>
+      ) : null}
+    </div>
+  )
+}
+
 function block(n: RichNode, key: string, dropCap = false, standfirst = false): ReactNode {
   const node = n as { type: string; attrs?: Record<string, unknown>; content?: RichNode[] }
   switch (node.type) {
@@ -175,6 +237,8 @@ function block(n: RichNode, key: string, dropCap = false, standfirst = false): R
       return <blockquote key={key}>{(node.content ?? []).map((c, i) => block(c, `${key}.${i}`))}</blockquote>
     case 'horizontalRule':
       return <hr key={key} />
+    case 'table':
+      return <Table key={key} node={node as TableNode} k={key} />
     case 'media':
       return <Media key={key} attrs={node.attrs ?? {}} />
     case 'embed':
@@ -201,8 +265,10 @@ function allItalic(n: RichNode): boolean {
 export function RichText({ doc, dropCap = false }: { doc: { content: RichNode[] }; dropCap?: boolean }) {
   // An all-italic paragraph at the very top reads as a standfirst (the magazine intro line).
   const standAt = dropCap ? doc.content.slice(0, 3).findIndex((n) => n.type === 'paragraph' && allItalic(n)) : -1
+  // Only the opening: never after a table or a second heading.
+  const stopAt = doc.content.findIndex((n, i) => n.type === 'table' || (n.type === 'heading' && doc.content.slice(0, i).some((m) => m.type === 'heading')))
   const capAt = dropCap
-    ? doc.content.findIndex((n, i) => i < 5 && i !== standAt && n.type === 'paragraph' && !allItalic(n) && textOf(n).length >= 80 && /^[\p{L}"“‘']/u.test(textOf(n)) && !/center|right/.test((n as { attrs?: { textAlign?: string } }).attrs?.textAlign ?? ''))
+    ? doc.content.findIndex((n, i) => i < 5 && (stopAt === -1 || i < stopAt) && i !== standAt && n.type === 'paragraph' && !allItalic(n) && textOf(n).length >= 80 && /^[\p{L}"“‘']/u.test(textOf(n)) && !/center|right/.test((n as { attrs?: { textAlign?: string } }).attrs?.textAlign ?? ''))
     : -1
   return <div className="tf-rich">{doc.content.map((n, i) => block(n, String(i), i === capAt, i === standAt))}</div>
 }
