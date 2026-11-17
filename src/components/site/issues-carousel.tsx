@@ -265,7 +265,7 @@ export function IssuesCarousel({ issues }: { issues: Issue[] }) {
       </div>
 
       <div key={current.slug} className="tf-flow-caption">
-        <div className="tf-display tf-clamp-3" style={{ fontSize: 'clamp(20px, 2vw, 28px)', lineHeight: 1.06 }}>
+        <div className="tf-display tf-clamp-3" style={{ fontSize: 'clamp(18px, 2vw, 28px)', lineHeight: 1.06 }}>
           {current.title}
         </div>
         {current.deck ? <p style={{ margin: 0, fontSize: 'var(--t-lead)', lineHeight: 1.45, color: 'var(--grey-1)' }}>{current.deck}</p> : null}

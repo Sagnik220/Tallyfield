@@ -8,20 +8,20 @@ type Tier = 'hero' | 'article' | 'read' | 'card' | 'row' | 'tile'
 const STEPS: Record<Tier, [number, string][]> = {
   // [max characters, font-size]. Minimums are phone sizes, maximums are large-monitor sizes.
   hero: [
-    [28, 'clamp(36px, 5.4vw, 80px)'],
-    [50, 'clamp(30px, 3.8vw, 56px)'],
-    [Infinity, 'clamp(24px, 2.7vw, 40px)'],
+    [28, 'clamp(30px, 5.4vw, 80px)'],
+    [50, 'clamp(25px, 3.8vw, 56px)'],
+    [Infinity, 'clamp(21px, 2.7vw, 40px)'],
   ],
   article: [
-    [28, 'clamp(38px, 5.6vw, 84px)'],
-    [55, 'clamp(30px, 4vw, 60px)'],
-    [Infinity, 'clamp(25px, 2.9vw, 44px)'],
+    [28, 'clamp(32px, 5.6vw, 84px)'],
+    [55, 'clamp(26px, 4vw, 60px)'],
+    [Infinity, 'clamp(22px, 2.9vw, 44px)'],
   ],
   // Article headline inside the ~700px reading column.
   read: [
-    [28, 'clamp(40px, 5.4vw, 68px)'],
-    [55, 'clamp(32px, 4.3vw, 56px)'],
-    [Infinity, 'clamp(27px, 3.4vw, 44px)'],
+    [28, 'clamp(32px, 5.4vw, 68px)'],
+    [55, 'clamp(27px, 4.3vw, 56px)'],
+    [Infinity, 'clamp(23px, 3.4vw, 44px)'],
   ],
   card: [
     [28, 'clamp(26px, 2.6vw, 34px)'],
@@ -29,8 +29,8 @@ const STEPS: Record<Tier, [number, string][]> = {
     [Infinity, 'clamp(18px, 1.7vw, 22px)'],
   ],
   row: [
-    [45, 'clamp(20px, 2.4vw, 34px)'],
-    [Infinity, 'clamp(17px, 1.8vw, 26px)'],
+    [45, 'clamp(18px, 2.4vw, 34px)'],
+    [Infinity, 'clamp(16px, 1.8vw, 26px)'],
   ],
   tile: [
     [36, 'clamp(20px, 2vw, 26px)'],

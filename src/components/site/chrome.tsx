@@ -7,7 +7,7 @@ export function Wordmark({ size = 30 }: { size?: number }) {
     <span
       style={{
         fontFamily: 'var(--display)',
-        fontSize: size,
+        fontSize: `var(--wm-size, ${size}px)`,
         letterSpacing: '0.08em',
         lineHeight: 1,
         color: 'var(--ink-cream)',
@@ -91,9 +91,9 @@ export function SiteFooter({ prompt = 'Which one would you pick? Tell us on Inst
           flexWrap: 'wrap',
           justifyContent: 'space-between',
           gap: '12px 32px',
-          minHeight: 'clamp(72px, 8vw, 96px)',
-          padding: '18px clamp(20px, 3vw, 32px)',
-          fontSize: 'clamp(17px, 1.8vw, 24px)',
+          minHeight: 'clamp(60px, 8vw, 96px)',
+          padding: '16px clamp(18px, 3vw, 32px)',
+          fontSize: 'clamp(15px, 1.8vw, 24px)',
           letterSpacing: 0,
           textTransform: 'none',
         }}
@@ -102,8 +102,8 @@ export function SiteFooter({ prompt = 'Which one would you pick? Tell us on Inst
         <span aria-hidden="true">→</span>
       </a>
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: '32px 48px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-          <Mark size={56} />
+        <div className="tf-foot-brand" style={{ display: 'flex', alignItems: 'center', gap: 'clamp(14px, 2vw, 24px)' }}>
+          <Mark size={56} className="tf-foot-mark" />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <Wordmark size={30} />
             <div style={{ fontSize: 'var(--t-small)', color: 'var(--grey-1)' }}>Watches · Reviews · Buying guides</div>

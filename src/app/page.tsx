@@ -126,7 +126,7 @@ export default async function HomePage() {
                   <span style={{ fontSize: 'var(--t-small)', fontWeight: 700, color: 'var(--grey-2)' }}>01</span>
                   <span style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     <span className="tf-label">First issues coming soon</span>
-                    <span style={{ fontFamily: 'var(--display)', fontSize: 'clamp(20px, 2.4vw, 34px)', lineHeight: 1.04, textTransform: 'uppercase' }}>
+                    <span style={{ fontFamily: 'var(--display)', fontSize: 'clamp(18px, 2.4vw, 34px)', lineHeight: 1.04, textTransform: 'uppercase' }}>
                       Until then, every verdict is on Instagram.
                     </span>
                   </span>

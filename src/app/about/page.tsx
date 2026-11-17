@@ -41,7 +41,7 @@ export default function AboutPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: 24 }}>
               {STEPS.map((s, i) => (
                 <div key={s.title} className="tf-reveal" style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '28px 24px', background: 'var(--panel)', border: '1px solid var(--stroke)' }}>
-                  <div style={{ fontFamily: 'var(--display)', fontSize: 'clamp(36px, 3.6vw, 48px)', lineHeight: 0.9, color: 'var(--gold)' }}>{String(i + 1).padStart(2, '0')}</div>
+                  <div style={{ fontFamily: 'var(--display)', fontSize: 'clamp(28px, 3.6vw, 48px)', lineHeight: 0.9, color: 'var(--gold)' }}>{String(i + 1).padStart(2, '0')}</div>
                   <h3 style={{ margin: 0, fontSize: 'var(--t-h3)', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-cream)' }}>{s.title}</h3>
                   <p className="tf-body">
                     {s.text}
