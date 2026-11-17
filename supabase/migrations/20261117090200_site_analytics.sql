@@ -33,7 +33,7 @@ declare
   v_post uuid;
   v_new integer := 0;
 begin
-  if p_path !~ '^/[A-Za-z0-9/_-]{0,299}$' then return; end if;
+  if p_path is null or char_length(p_path) > 300 or p_path !~ '^/[A-Za-z0-9/_-]*$' then return; end if;
   if p_path like '/posts/%' then
     select id into v_post from public.posts where slug = substring(p_path from 8) and status = 'published';
   end if;
