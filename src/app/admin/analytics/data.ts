@@ -34,7 +34,7 @@ export async function loadInstagram(days: number): Promise<IgReport> {
 }
 
 export async function loadAds(days: number): Promise<AdsReport> {
-  const empty: AdsReport = { ok: false, error: null, setup: null, accounts: [], currency: 'INR', totals: null, daily: [], platforms: [], ads: [] }
+  const empty: AdsReport = { ok: false, error: null, setup: null, accounts: [], currency: 'INR', totals: null, instagram: null, daily: [], platforms: [], ads: [] }
   try {
     const token = await getIntegrationToken('instagram')
     return await adsReport({ token, apiVersion: serverEnv().INSTAGRAM_API_VERSION, since: dayKey(rangeStart(days)), until: dayKey(new Date()) })

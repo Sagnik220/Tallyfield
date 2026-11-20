@@ -20,7 +20,7 @@ export default async function InstagramAnalytics({ searchParams }: { searchParam
 
   return (
     <section style={{ display: 'grid', gap: 14 }}>
-      <SectionTitle note={ig.ok ? 'Organic only: Instagram does not count activity from ads here (see Ads). Numbers refresh every 15 minutes; per-post insights every hour.' : undefined}>
+      <SectionTitle note={ig.ok ? 'Account totals include activity from ads; the per-post table counts organic activity only (ad results are on the Ads tab). Refreshes every 15 minutes; per-post insights hourly.' : undefined}>
         Instagram {ig.account ? `· @${ig.account.username}` : ''}
       </SectionTitle>
       {!ig.ok ? (

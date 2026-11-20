@@ -2188,3 +2188,27 @@ img {
   font-size: 11px;
   color: var(--grey-2);
 }
+.tf-ads-setup {
+  padding: 10px 14px;
+  border: 1px solid var(--stroke);
+  border-left: 3px solid var(--warn);
+  background: var(--panel);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-cream);
+}
+.tf-ads-setup summary {
+  cursor: pointer;
+  list-style: none;
+}
+.tf-ads-setup summary::-webkit-details-marker {
+  display: none;
+}
+.tf-ads-setup-how {
+  color: var(--gold-light);
+  text-decoration: underline;
+  white-space: nowrap;
+}
+.tf-ads-setup[open] .tf-ads-setup-how {
+  display: none;
+}

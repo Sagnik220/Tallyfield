@@ -20,14 +20,14 @@ export function SectionTitle({ children, note }: { children: React.ReactNode; no
 }
 
 export function Tiles({ children }: { children: React.ReactNode }) {
-  return <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>{children}</div>
+  return <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 12 }}>{children}</div>
 }
 
 export function Tile({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
     <div className="tf-panel" style={{ gap: 6, padding: '16px 18px' }}>
       <span className="tf-label">{label}</span>
-      <span style={{ fontFamily: 'var(--display)', fontSize: 34, lineHeight: 1, color: 'var(--ink-cream)' }}>{value}</span>
+      <span style={BIG}>{value}</span>
       {note ? (
         <span className="tf-note" style={{ fontSize: 12 }}>
           {note}
@@ -37,39 +37,42 @@ export function Tile({ label, value, note }: { label: string; value: string; not
   )
 }
 
+const BIG = { fontFamily: 'var(--display)', fontSize: 'clamp(26px, 2.3vw, 34px)', lineHeight: 1, color: 'var(--ink-cream)', overflowWrap: 'anywhere' } as const
+
 /**
- * A combined total with its organic / paid split: the big number, a two-part bar, and both parts in text
- * (so the split never depends on colour alone). additive=false for reach, where people can overlap.
+ * A total and how much of it came from ads. Instagram's account totals already include ad activity, so
+ * organic = total − paid (never below zero). Without ad data it simply shows Instagram's total.
  */
-export function SplitTile({ label, organic, paid, additive = true, paidReady }: { label: string; organic: number | null; paid: number | null; additive?: boolean; paidReady: boolean }) {
-  const o = organic ?? 0
-  const p = paidReady ? (paid ?? 0) : 0
-  const total = o + p
-  const share = total ? p / total : 0
+export function SplitTile({ label, total, paid, paidReady, note }: { label: string; total: number | null; paid: number | null; paidReady: boolean; note?: string }) {
+  const t = total ?? 0
+  const p = paidReady ? Math.min(paid ?? 0, t) : 0
+  const o = Math.max(0, t - p)
+  const showSplit = paidReady && total != null
   return (
     <div className="tf-panel tf-splittile" style={{ gap: 8, padding: '16px 18px' }}>
       <span className="tf-label">{label}</span>
-      <span style={{ fontFamily: 'var(--display)', fontSize: 34, lineHeight: 1, color: 'var(--ink-cream)', whiteSpace: 'nowrap' }}>
-        {!additive && (organic != null || paidReady) ? <span style={{ fontFamily: 'var(--sans)', fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', color: 'var(--grey-2)', marginRight: 6, textTransform: 'uppercase' }}>up to</span> : null}
-        {organic == null && !paidReady ? '—' : fmt(total)}
-      </span>
-      <span className="tf-split-bar" aria-hidden="true">
-        <span className="tf-split-organic" style={{ flexGrow: total ? o : 1 }} />
-        {paidReady && p > 0 ? <span className="tf-split-paid" style={{ flexGrow: p }} /> : null}
-      </span>
-      <span className="tf-split-legend">
-        <span>
-          <i className="tf-split-key tf-split-organic" aria-hidden="true" />
-          Organic {fmt(organic)}
-        </span>
-        <span>
-          <i className="tf-split-key tf-split-paid" aria-hidden="true" />
-          Paid {paidReady ? `${fmt(paid)} · ${Math.round(share * 100)}%` : '—'}
-        </span>
-      </span>
-      {!additive ? (
-        <span className="tf-note" style={{ fontSize: 11 }}>
-          Some people see a post both ways, so the true total is at most this.
+      <span style={BIG}>{fmt(total)}</span>
+      {showSplit ? (
+        <>
+          <span className="tf-split-bar" aria-hidden="true">
+            <span className="tf-split-organic" style={{ flexGrow: t ? o : 1 }} />
+            {p > 0 ? <span className="tf-split-paid" style={{ flexGrow: p }} /> : null}
+          </span>
+          <span className="tf-split-legend">
+            <span>
+              <i className="tf-split-key tf-split-organic" aria-hidden="true" />
+              Organic {fmt(o)}
+            </span>
+            <span>
+              <i className="tf-split-key tf-split-paid" aria-hidden="true" />
+              Ads {fmt(p)} · {t ? Math.round((p / t) * 100) : 0}%
+            </span>
+          </span>
+        </>
+      ) : null}
+      {note ? (
+        <span className="tf-note" style={{ fontSize: 12 }}>
+          {note}
         </span>
       ) : null}
     </div>
@@ -114,23 +117,29 @@ export function Ranked({ title, rows, total, empty, format = fmt }: { title: str
   )
 }
 
-/** What to do when ad numbers can't be read yet. */
-export function AdsSetupCard({ setup, error }: { setup: AdsSetup; error: string | null }) {
+/** What to do when ad numbers can't be read yet: one line, with the steps folded away. */
+export function AdsSetupCard({ setup, error, compact = false }: { setup: AdsSetup; error: string | null; compact?: boolean }) {
+  const steps =
+    setup === 'no_account' ? (
+      <ol style={{ margin: '6px 0 0', paddingLeft: 18, display: 'grid', gap: 4 }}>
+        <li>If your boosts are paid from the Instagram app, add that ad account to the Tallyfield business portfolio (Business settings → Accounts → Ad accounts → Add).</li>
+        <li>Open the ad account → Assign people → choose the Tallyfield system user → allow “View performance”.</li>
+        <li>Reload this page. No new token is needed.</li>
+      </ol>
+    ) : setup === 'no_permission' ? (
+      <p style={{ margin: '6px 0 0' }}>
+        The connection needs the <code>ads_read</code> permission and access to your ad account.
+      </p>
+    ) : (
+      <p style={{ margin: '6px 0 0' }}>Meta didn’t respond: {error ?? 'unknown error'}. Try again in a minute.</p>
+    )
   return (
-    <div className="tf-alert" role="status" style={{ display: 'grid', gap: 8 }}>
-      <strong>Ad numbers aren’t connected yet.</strong>
-      {setup === 'no_account' ? (
-        <span>
-          The connection works, but it can’t see any ad account. In Meta Business settings, open <em>Accounts → Ad accounts</em>, pick the account your boosts and ads are paid from, and assign
-          it to the Tallyfield system user (with “View performance”). If your boosts were paid from the Instagram app, first add that ad account to the Tallyfield business portfolio.
-        </span>
-      ) : setup === 'no_permission' ? (
-        <span>
-          The connection needs the <code>ads_read</code> permission and access to your ad account. Ask Claude to walk you through it; it takes about five minutes.
-        </span>
-      ) : (
-        <span>Meta didn’t respond: {error ?? 'unknown error'}. Try again in a minute.</span>
-      )}
-    </div>
+    <details className="tf-ads-setup" open={!compact}>
+      <summary>
+        <strong>Ads not connected yet.</strong> Totals below are Instagram’s own (they already include any ads); the paid split appears once your ad account is shared.{' '}
+        <span className="tf-ads-setup-how">How to connect</span>
+      </summary>
+      <div style={{ fontSize: 13, color: 'var(--grey-1)' }}>{steps}</div>
+    </details>
   )
 }

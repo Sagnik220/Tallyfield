@@ -45,32 +45,37 @@ export default async function AnalyticsOverview({ searchParams }: { searchParams
     }
   })
 
+  const igPaid = ads.instagram
   return (
     <>
       <section style={{ display: 'grid', gap: 14 }}>
-        <SectionTitle
-          note={
-            <>
-              Organic numbers come from Instagram, paid from Meta Ads (boosts and ads), added together. <span className="tf-split-key tf-split-organic" /> Organic <span className="tf-split-key tf-split-paid" style={{ marginLeft: 10 }} /> Paid
-            </>
-          }
-        >
-          Organic + paid · last {days} days
+        <SectionTitle note="Instagram’s account totals (they already include activity from ads), with the part that came from your Instagram ads.">
+          Instagram · organic + ads · last {days} days
         </SectionTitle>
-        {!paidReady ? <AdsSetupCard setup={ads.setup} error={ads.error} /> : null}
+        {!paidReady ? <AdsSetupCard setup={ads.setup} error={ads.error} compact /> : null}
         {!ig.ok ? (
           <div className="tf-alert" role="alert">
             Instagram numbers are unavailable: {ig.error ?? 'unknown error'}
           </div>
         ) : null}
         <Tiles>
-          <SplitTile label="Views" organic={ig.totals?.views ?? null} paid={t?.impressions ?? null} paidReady={paidReady} />
-          <SplitTile label="Interactions" organic={ig.totals?.interactions ?? null} paid={t?.interactions ?? null} paidReady={paidReady} />
-          <SplitTile label={days > 30 ? 'Reach (organic: last 30 days)' : 'Reach'} organic={ig.totals?.reach ?? null} paid={t?.reach ?? null} paidReady={paidReady} additive={false} />
+          <SplitTile label="Views" total={ig.totals?.views ?? null} paid={igPaid?.impressions ?? null} paidReady={paidReady} note={paidReady ? undefined : 'Times your content was on screen'} />
+          <SplitTile label="Interactions" total={ig.totals?.interactions ?? null} paid={igPaid?.interactions ?? null} paidReady={paidReady} note={paidReady ? undefined : 'Likes, comments, saves, shares'} />
+          <Tile
+            label={days > 30 ? 'Reach · last 30 days' : 'Reach'}
+            value={fmt(ig.totals?.reach)}
+            note={paidReady && igPaid ? `Ads reached ${fmt(igPaid.reach)} (people can be reached both ways)` : 'Unique accounts that saw your content'}
+          />
           <Tile
             label="Ad spend"
             value={paidReady ? money(t!.spend, c) : '—'}
-            note={paidReady && t!.impressions ? `${money((t!.spend / t!.impressions) * 1000, c, 2)} per 1,000 paid views${t!.interactions ? ` · ${money(t!.spend / t!.interactions, c, 2)} per interaction` : ''}` : undefined}
+            note={
+              paidReady
+                ? t!.impressions
+                  ? `${money((t!.spend / t!.impressions) * 1000, c, 2)} per 1,000 views${t!.interactions ? ` · ${money(t!.spend / t!.interactions, c, 2)} per interaction` : ''}`
+                  : 'No spend in this period'
+                : 'Ads not connected yet'
+            }
           />
           <Tile label="Followers" value={fmt(ig.account?.followers)} note="Current total" />
           <Tile label="Website page views" value={fmt(siteViews)} note={`${pct(fromInstagram, siteViews)} came from Instagram`} />
@@ -93,7 +98,7 @@ export default async function AnalyticsOverview({ searchParams }: { searchParams
 
       {ig.ok ? (
         <section style={{ display: 'grid', gap: 14 }}>
-          <SectionTitle note="Which posts did best once ads are counted, and what each paid result cost.">Posts · organic + paid</SectionTitle>
+          <SectionTitle note="Per post, Instagram counts organic activity only, so ad results are added on top.">Posts · organic + ads</SectionTitle>
           <CombinedTable rows={rows} currency={c} adsReady={paidReady} />
         </section>
       ) : null}

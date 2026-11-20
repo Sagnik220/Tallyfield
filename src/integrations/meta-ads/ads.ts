@@ -44,6 +44,8 @@ export interface AdsReport {
   accounts: { id: string; name: string; currency: string }[]
   currency: string
   totals: AdMetrics | null
+  /** Paid results on Instagram placements only (the part of Instagram's own totals that came from ads). */
+  instagram: AdMetrics | null
   daily: { day: string; spend: number; impressions: number }[]
   platforms: { platform: string; impressions: number; spend: number }[]
   /** Every ad with its lifetime results (most recent first). */
@@ -120,7 +122,7 @@ const ZERO = metricsOf(undefined)
 const FIELDS = 'spend,impressions,reach,clicks,inline_link_clicks,actions'
 
 export async function adsReport(o: Options): Promise<AdsReport> {
-  const report: AdsReport = { ok: false, error: null, setup: null, accounts: [], currency: 'INR', totals: null, daily: [], platforms: [], ads: [] }
+  const report: AdsReport = { ok: false, error: null, setup: null, accounts: [], currency: 'INR', totals: null, instagram: null, daily: [], platforms: [], ads: [] }
   const range = JSON.stringify({ since: o.since, until: o.until })
 
   try {
@@ -141,13 +143,14 @@ export async function adsReport(o: Options): Promise<AdsReport> {
   const daily = new Map<string, { day: string; spend: number; impressions: number }>()
   const platforms = new Map<string, { platform: string; impressions: number; spend: number }>()
   let totals = ZERO
+  let instagram = ZERO
   try {
     await Promise.all(
       report.accounts.map(async (a) => {
         const [sum, days, plats, ads] = await Promise.all([
           graph<{ data: InsightRow[] }>(o, `${a.id}/insights`, { fields: FIELDS, time_range: range, level: 'account' }),
           graph<{ data: InsightRow[] }>(o, `${a.id}/insights`, { fields: 'spend,impressions', time_range: range, time_increment: '1', limit: '100' }),
-          graph<{ data: InsightRow[] }>(o, `${a.id}/insights`, { fields: 'spend,impressions', time_range: range, breakdowns: 'publisher_platform' }),
+          graph<{ data: InsightRow[] }>(o, `${a.id}/insights`, { fields: FIELDS, time_range: range, breakdowns: 'publisher_platform' }),
           listAds(o, a.id),
         ])
         totals = addMetrics(totals, metricsOf(sum.data[0]))
@@ -160,6 +163,7 @@ export async function adsReport(o: Options): Promise<AdsReport> {
         }
         for (const p of plats.data) {
           const k = p.publisher_platform ?? 'other'
+          if (k === 'instagram') instagram = addMetrics(instagram, metricsOf(p))
           const cur = platforms.get(k) ?? { platform: k, impressions: 0, spend: 0 }
           cur.impressions += num(p.impressions)
           cur.spend += num(p.spend)
@@ -175,6 +179,7 @@ export async function adsReport(o: Options): Promise<AdsReport> {
   }
   report.ok = true
   report.totals = totals
+  report.instagram = instagram
   report.daily = [...daily.values()].sort((a, b) => a.day.localeCompare(b.day))
   report.platforms = [...platforms.values()].sort((a, b) => b.impressions - a.impressions)
   return report
