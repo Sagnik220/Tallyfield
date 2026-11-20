@@ -157,23 +157,33 @@ export async function instagramReport(o: Options): Promise<IgReport> {
   }
   await Promise.all(Array.from({ length: 8 }, worker))
 
-  // Account totals for the chosen period (Meta allows up to 30 days per request).
+  // Account totals for the chosen period. Meta allows 30 days per request: views, interactions and profile views
+  // add up across 30-day windows; reach and accounts engaged count unique people, so they cover the last 30 days.
   try {
-    const until = Math.floor(Date.now() / 1000)
-    const since = until - Math.min(o.days, 30) * 86_400
-    const t = await graph<{ data: InsightValue[] }>(o, `${o.accountId}/insights`, {
-      metric: 'reach,views,accounts_engaged,total_interactions,profile_views',
-      period: 'day',
-      metric_type: 'total_value',
-      since: String(since),
-      until: String(until),
-    })
+    const now = Math.floor(Date.now() / 1000)
+    const windows: [number, number][] = []
+    for (let left = o.days, end = now; left > 0; left -= 30, end -= 30 * 86_400) windows.push([end - Math.min(left, 30) * 86_400, end])
+    const results = await Promise.all(
+      windows.map(([since, until], i) =>
+        graph<{ data: InsightValue[] }>(o, `${o.accountId}/insights`, {
+          metric: i === 0 ? 'reach,views,accounts_engaged,total_interactions,profile_views' : 'views,total_interactions,profile_views',
+          period: 'day',
+          metric_type: 'total_value',
+          since: String(since),
+          until: String(until),
+        }),
+      ),
+    )
+    const add = (name: string) => {
+      const vals = results.map((r) => pick(r.data, name)).filter((v): v is number => v !== null)
+      return vals.length ? vals.reduce((x, y) => x + y, 0) : null
+    }
     report.totals = {
-      reach: pick(t.data, 'reach'),
-      views: pick(t.data, 'views'),
-      engaged: pick(t.data, 'accounts_engaged'),
-      interactions: pick(t.data, 'total_interactions'),
-      profileViews: pick(t.data, 'profile_views'),
+      reach: pick(results[0]!.data, 'reach'),
+      views: add('views'),
+      engaged: pick(results[0]!.data, 'accounts_engaged'),
+      interactions: add('total_interactions'),
+      profileViews: add('profile_views'),
     }
     report.insightsAvailable = true
   } catch {

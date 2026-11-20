@@ -2116,3 +2116,75 @@ img {
     font-size: 10.5px;
   }
 }
+
+/* Analytics: organic / paid split */
+.tf-splittile {
+  align-items: stretch;
+  text-align: left;
+}
+.tf-split-bar {
+  display: flex;
+  width: 100%;
+  gap: 2px;
+  height: 8px;
+  margin-top: 2px;
+}
+.tf-split-bar > span {
+  display: block;
+  min-width: 2px;
+  border-radius: 2px;
+}
+.tf-split-organic {
+  background: var(--gold-light);
+}
+.tf-split-paid {
+  background: #7e9fb8;
+}
+.tf-split-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: 12px;
+  color: var(--grey-1);
+  font-variant-numeric: tabular-nums;
+}
+.tf-split-key {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: 2px;
+  vertical-align: 0;
+}
+.tf-analytics-tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--stroke);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tf-analytics-tabs a {
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--grey-2);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  white-space: nowrap;
+}
+.tf-analytics-tabs a:hover {
+  color: var(--ink-cream);
+}
+.tf-analytics-tabs a[aria-current='page'] {
+  color: var(--ink-cream);
+  border-bottom-color: var(--gold);
+}
+.tf-side.tf-side-sub {
+  min-height: 34px;
+  padding-left: 34px;
+  font-size: 11px;
+  color: var(--grey-2);
+}
