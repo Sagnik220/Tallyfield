@@ -50,6 +50,8 @@ export interface AdsReport {
   platforms: { platform: string; impressions: number; spend: number }[]
   /** Every ad with its lifetime results (most recent first). */
   ads: AdRow[]
+  /** Ads in the account that were left out by `keep` (other brands). */
+  hidden: number
 }
 
 interface Options {
@@ -57,6 +59,11 @@ interface Options {
   apiVersion: string
   since: string // YYYY-MM-DD
   until: string // YYYY-MM-DD
+  /**
+   * Which ads to count (e.g. only ads promoting @tallyfield posts, when the ad account also runs ads for
+   * another brand). Totals, daily spend and platforms are then built from those ads alone.
+   */
+  keep?: (ad: Pick<AdRow, 'id' | 'name' | 'mediaIds' | 'permalink'>) => boolean
 }
 
 type Action = { action_type: string; value: string }
@@ -69,6 +76,7 @@ type InsightRow = {
   actions?: Action[]
   date_start?: string
   publisher_platform?: string
+  ad_id?: string
 }
 
 class GraphError extends Error {
@@ -122,7 +130,7 @@ const ZERO = metricsOf(undefined)
 const FIELDS = 'spend,impressions,reach,clicks,inline_link_clicks,actions'
 
 export async function adsReport(o: Options): Promise<AdsReport> {
-  const report: AdsReport = { ok: false, error: null, setup: null, accounts: [], currency: 'INR', totals: null, instagram: null, daily: [], platforms: [], ads: [] }
+  const report: AdsReport = { ok: false, error: null, setup: null, accounts: [], currency: 'INR', totals: null, instagram: null, daily: [], platforms: [], ads: [], hidden: 0 }
   const range = JSON.stringify({ since: o.since, until: o.until })
 
   try {
@@ -147,21 +155,26 @@ export async function adsReport(o: Options): Promise<AdsReport> {
   try {
     await Promise.all(
       report.accounts.map(async (a) => {
-        const [sum, days, plats, ads] = await Promise.all([
-          graph<{ data: InsightRow[] }>(o, `${a.id}/insights`, { fields: FIELDS, time_range: range, level: 'account' }),
-          graph<{ data: InsightRow[] }>(o, `${a.id}/insights`, { fields: 'spend,impressions', time_range: range, time_increment: '1', limit: '100' }),
-          graph<{ data: InsightRow[] }>(o, `${a.id}/insights`, { fields: FIELDS, time_range: range, breakdowns: 'publisher_platform' }),
+        // Results per ad (not per account), so only the kept ads are counted.
+        const [sum, days, plats, all] = await Promise.all([
+          adInsights(o, a.id, { fields: `ad_id,${FIELDS}`, time_range: range }),
+          adInsights(o, a.id, { fields: 'ad_id,spend,impressions', time_range: range, time_increment: '1' }),
+          adInsights(o, a.id, { fields: `ad_id,${FIELDS}`, time_range: range, breakdowns: 'publisher_platform' }),
           listAds(o, a.id),
         ])
-        totals = addMetrics(totals, metricsOf(sum.data[0]))
-        for (const d of days.data) {
+        const ads = o.keep ? all.filter((ad) => o.keep!(ad)) : all
+        report.hidden += all.length - ads.length
+        const keepId = new Set(ads.map((ad) => ad.id))
+        const counted = (r: InsightRow) => !o.keep || (r.ad_id !== undefined && keepId.has(r.ad_id))
+        for (const r of sum.filter(counted)) totals = addMetrics(totals, metricsOf(r))
+        for (const d of days.filter(counted)) {
           const k = d.date_start ?? ''
           const cur = daily.get(k) ?? { day: k, spend: 0, impressions: 0 }
           cur.spend += num(d.spend)
           cur.impressions += num(d.impressions)
           daily.set(k, cur)
         }
-        for (const p of plats.data) {
+        for (const p of plats.filter(counted)) {
           const k = p.publisher_platform ?? 'other'
           if (k === 'instagram') instagram = addMetrics(instagram, metricsOf(p))
           const cur = platforms.get(k) ?? { platform: k, impressions: 0, spend: 0 }
@@ -183,6 +196,19 @@ export async function adsReport(o: Options): Promise<AdsReport> {
   report.daily = [...daily.values()].sort((a, b) => a.day.localeCompare(b.day))
   report.platforms = [...platforms.values()].sort((a, b) => b.impressions - a.impressions)
   return report
+}
+
+/** Ad-level insight rows for an account (all pages, up to 5,000 rows). */
+async function adInsights(o: Options, accountId: string, params: Record<string, string>): Promise<InsightRow[]> {
+  const out: InsightRow[] = []
+  let after: string | undefined
+  for (let page = 0; page < 10; page += 1) {
+    const res = await graph<{ data: InsightRow[]; paging?: { cursors?: { after?: string }; next?: string } }>(o, `${accountId}/insights`, { ...params, level: 'ad', limit: '500', ...(after ? { after } : {}) })
+    out.push(...res.data)
+    after = res.paging?.next ? res.paging.cursors?.after : undefined
+    if (!after) break
+  }
+  return out
 }
 
 type AdNode = {

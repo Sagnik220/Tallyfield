@@ -46,7 +46,7 @@ export default async function AdsAnalytics({ searchParams }: { searchParams: Pro
 
   return (
     <section style={{ display: 'grid', gap: 14 }}>
-      <SectionTitle note={`From ${ads.accounts.map((a) => a.name).join(', ')}. Paid results only (boosts and ads); refreshes every 15 minutes.`}>Ads &amp; boosted posts · last {days} days</SectionTitle>
+      <SectionTitle note={`Only ads promoting @tallyfield posts${ads.hidden ? ` (${ads.hidden} ad${ads.hidden === 1 ? '' : 's'} for other accounts, such as Minted Store, are hidden)` : ''}. Paid results only; refreshes every 15 minutes.`}>Ads &amp; boosted posts · last {days} days</SectionTitle>
       <Tiles>
         <Tile label="Spend" value={money(t.spend, c)} />
         <Tile label="Impressions" value={fmt(t.impressions)} note="Times your ads were seen" />

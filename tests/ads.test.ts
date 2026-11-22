@@ -59,3 +59,17 @@ describe('normalisePermalink', () => {
     expect(normalisePermalink(null)).toBe('')
   })
 })
+
+describe('keeping only @tallyfield ads', () => {
+  it('keeps ads promoting the account’s own posts and drops ads for other brands', async () => {
+    const { isOwnAd } = await import('@/app/admin/analytics/merge')
+    const keep = isOwnAd([
+      { id: '111', permalink: 'https://www.instagram.com/p/TALLY1/' },
+      { id: '222', permalink: 'https://www.instagram.com/reel/TALLY2/' },
+    ])
+    expect(keep({ mediaIds: ['111'], permalink: null })).toBe(true) // boosted post, by media id
+    expect(keep({ mediaIds: ['legacy-999'], permalink: 'https://instagram.com/reels/TALLY2?igsh=a' })).toBe(true) // by link
+    expect(keep({ mediaIds: ['555'], permalink: 'https://www.instagram.com/p/MINTED1/' })).toBe(false) // Minted Store
+    expect(keep({ mediaIds: [], permalink: null })).toBe(false)
+  })
+})

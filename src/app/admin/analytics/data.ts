@@ -4,7 +4,9 @@ import { listDailyViews, type DailyRow } from '@/data/analytics.repo'
 import { listPostSummariesForAdmin, type PostSummary } from '@/data/posts.repo'
 import { getIntegrationToken } from '@/data/tokens.repo'
 import { instagramReport, type IgReport } from '@/integrations/instagram/insights'
+import { listOwnMedia } from '@/integrations/importers/instagram/client'
 import { adsReport, type AdsReport } from '@/integrations/meta-ads/ads'
+import { isOwnAd } from './merge'
 import type { Db } from '@/lib/supabase/server'
 
 export const RANGES = [7, 30, 90] as const
@@ -34,10 +36,15 @@ export async function loadInstagram(days: number): Promise<IgReport> {
 }
 
 export async function loadAds(days: number): Promise<AdsReport> {
-  const empty: AdsReport = { ok: false, error: null, setup: null, accounts: [], currency: 'INR', totals: null, instagram: null, daily: [], platforms: [], ads: [] }
+  const empty: AdsReport = { ok: false, error: null, setup: null, accounts: [], currency: 'INR', totals: null, instagram: null, daily: [], platforms: [], ads: [], hidden: 0 }
   try {
     const token = await getIntegrationToken('instagram')
-    return await adsReport({ token, apiVersion: serverEnv().INSTAGRAM_API_VERSION, since: dayKey(rangeStart(days)), until: dayKey(new Date()) })
+    const env = serverEnv()
+    // The ad account also runs ads for other brands (e.g. Minted Store): count only ads that promote an
+    // @tallyfield post, matched by the post's media id or link.
+    const own = env.INSTAGRAM_ACCOUNT_ID ? await listOwnMedia(token, { apiVersion: env.INSTAGRAM_API_VERSION, accountId: env.INSTAGRAM_ACCOUNT_ID }) : []
+    const keep = own.length ? isOwnAd(own.map((m) => ({ id: m.id, permalink: m.permalink }))) : undefined
+    return await adsReport({ token, apiVersion: env.INSTAGRAM_API_VERSION, since: dayKey(rangeStart(days)), until: dayKey(new Date()), keep })
   } catch (e) {
     return { ...empty, error: e instanceof Error ? e.message : 'Meta Ads is not connected.' }
   }

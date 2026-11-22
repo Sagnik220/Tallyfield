@@ -26,3 +26,10 @@ export function paidByMedia(ads: AdRow[], ig: IgPost[]): Map<string, AdMetrics &
   return out
 }
 
+
+/** True for ads that promote one of the account's own posts (by media id or by link). */
+export function isOwnAd(posts: { id: string; permalink: string }[]) {
+  const ids = new Set(posts.map((p) => p.id))
+  const links = new Set(posts.map((p) => normalisePermalink(p.permalink)))
+  return (ad: { mediaIds: string[]; permalink: string | null }) => ad.mediaIds.some((id) => ids.has(id)) || (ad.permalink !== null && links.has(normalisePermalink(ad.permalink)))
+}
