@@ -15,9 +15,12 @@ export function LoginForm({ error }: { error?: string | undefined }) {
     setMessage('')
     const { error: sendError } = await createClient().auth.signInWithOtp({
       email: email.trim(),
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/admin` },
+      // Existing accounts only: the form never creates new users.
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/admin`, shouldCreateUser: false },
     })
-    if (sendError) {
+    // Unknown addresses get the same answer as known ones, so the form can't be used to find out who has an account.
+    const unknownAccount = sendError && (sendError.status === 400 || sendError.status === 422) && /signup|not allowed|not found/i.test(sendError.message)
+    if (sendError && !unknownAccount) {
       setState('failed')
       setMessage(sendError.status === 429 ? 'Too many sign-in emails. Wait a few minutes and try again.' : 'Could not send the sign-in email. Check the address and try again.')
       return
@@ -28,7 +31,7 @@ export function LoginForm({ error }: { error?: string | undefined }) {
   if (state === 'sent') {
     return (
       <div className="tf-alert tf-success" role="status">
-        Check <strong>{email}</strong> for a sign-in link. Open it on this device. It expires in an hour.
+        If <strong>{email}</strong> has access, a sign-in link is on its way. Open it on this device. It expires in an hour.
       </div>
     )
   }
